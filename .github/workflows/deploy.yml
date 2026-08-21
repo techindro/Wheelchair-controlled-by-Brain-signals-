@@ -45,9 +45,7 @@ jobs:
           python socket_communication_codes/emergency_sos.py
 
   deploy-pages:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+    environment: github-pages
     runs-on: ubuntu-latest
     needs: test-python-dsp-ml
     steps:
