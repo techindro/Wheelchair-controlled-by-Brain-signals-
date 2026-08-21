@@ -1,0 +1,1091 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NeuroWheel - BCI Wheelchair Simulator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-page: #f8fafc;
+            --bg-card: #ffffff;
+            --bg-subtle: #f1f5f9;
+            --border-light: #e2e8f0;
+            --border-focus: #cbd5e1;
+            
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --text-subtle: #94a3b8;
+
+            --color-primary: #2563eb;
+            --color-primary-light: #eff6ff;
+            --color-success: #16a34a;
+            --color-success-light: #f0fdf4;
+            --color-danger: #dc2626;
+            --color-danger-light: #fef2f2;
+            --color-warning: #d97706;
+
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.06), 0 4px 6px -4px rgba(0, 0, 0, 0.04);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        body {
+            background-color: var(--bg-page);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Navbar Header */
+        header {
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border-light);
+            padding: 12px 28px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .logo-icon {
+            width: 38px;
+            height: 38px;
+            background: var(--color-primary);
+            color: white;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25);
+        }
+
+        .header-title h1 {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: var(--text-main);
+            letter-spacing: -0.02em;
+        }
+
+        .header-title p {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+        }
+
+        .system-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--color-success-light);
+            border: 1px solid rgba(22, 163, 74, 0.2);
+            color: var(--color-success);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.78rem;
+            font-weight: 600;
+        }
+
+        .status-dot {
+            width: 7px;
+            height: 7px;
+            background: var(--color-success);
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        /* Main Container */
+        .main-wrapper {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 1fr 380px;
+            gap: 20px;
+            padding: 20px 28px;
+            max-width: 1540px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        /* Simulation Canvas Panel */
+        .panel {
+            background: var(--bg-card);
+            border: 1px solid var(--border-light);
+            border-radius: 12px;
+            box-shadow: var(--shadow-sm);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .panel-header {
+            padding: 12px 18px;
+            border-bottom: 1px solid var(--border-light);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #ffffff;
+        }
+
+        .panel-title {
+            font-size: 0.88rem;
+            font-weight: 600;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .panel-subtitle {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .arena-wrapper {
+            flex: 1;
+            position: relative;
+            background: #ffffff;
+            min-height: 480px;
+            cursor: crosshair;
+        }
+
+        canvas#simCanvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        .arena-helper {
+            position: absolute;
+            bottom: 12px;
+            left: 16px;
+            background: rgba(255, 255, 255, 0.92);
+            border: 1px solid var(--border-light);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            pointer-events: none;
+            box-shadow: var(--shadow-sm);
+        }
+
+        /* Dashboard Right Column */
+        .dashboard-col {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-light);
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .card-heading {
+            font-size: 0.84rem;
+            font-weight: 600;
+            color: var(--text-main);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        /* EEG Wave Visualizer */
+        .eeg-container {
+            height: 90px;
+            background: var(--bg-subtle);
+            border: 1px solid var(--border-light);
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        canvas#eegCanvas {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Metric Grid */
+        .metric-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+        .metric-box {
+            background: var(--bg-subtle);
+            border: 1px solid var(--border-light);
+            padding: 10px 12px;
+            border-radius: 8px;
+        }
+
+        .metric-label {
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .metric-value {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--color-primary);
+            font-family: 'JetBrains Mono', monospace;
+            margin-top: 2px;
+        }
+
+        /* Navigation Controls */
+        .nav-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .nav-btn {
+            background: var(--bg-card);
+            border: 1px solid var(--border-light);
+            color: var(--text-main);
+            padding: 10px 6px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .nav-btn svg {
+            width: 18px;
+            height: 18px;
+            stroke: currentColor;
+            stroke-width: 2;
+            fill: none;
+        }
+
+        .nav-btn:hover {
+            background: var(--bg-subtle);
+            border-color: var(--border-focus);
+            transform: translateY(-1px);
+        }
+
+        .nav-btn:active, .nav-btn.active {
+            background: var(--color-primary);
+            color: #ffffff;
+            border-color: var(--color-primary);
+        }
+
+        .btn-brake {
+            background: var(--color-danger-light);
+            border-color: rgba(220, 38, 38, 0.2);
+            color: var(--color-danger);
+        }
+
+        .btn-brake:hover, .btn-brake.active {
+            background: var(--color-danger);
+            color: #ffffff;
+            border-color: var(--color-danger);
+        }
+
+        /* Gear Buttons */
+        .gear-row {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .gear-btn {
+            flex: 1;
+            padding: 8px 4px;
+            background: var(--bg-subtle);
+            border: 1px solid var(--border-light);
+            color: var(--text-muted);
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .gear-btn.active {
+            background: var(--text-main);
+            color: #ffffff;
+            border-color: var(--text-main);
+        }
+
+        /* Voice Button */
+        .voice-bar {
+            margin-top: 10px;
+        }
+
+        .voice-btn {
+            width: 100%;
+            background: var(--bg-card);
+            border: 1px solid var(--border-light);
+            color: var(--text-main);
+            padding: 9px 12px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.78rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.15s;
+        }
+
+        .voice-btn svg {
+            width: 16px;
+            height: 16px;
+            stroke: currentColor;
+            fill: none;
+        }
+
+        .voice-btn:hover {
+            background: var(--bg-subtle);
+        }
+
+        .voice-btn.listening {
+            background: var(--color-danger);
+            color: #ffffff;
+            border-color: var(--color-danger);
+        }
+
+        /* Telemetry Log Box */
+        .log-container {
+            height: 110px;
+            background: var(--bg-subtle);
+            border: 1px solid var(--border-light);
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .log-time { color: var(--text-subtle); margin-right: 6px; }
+        .log-msg { color: var(--text-main); font-weight: 500; }
+        .log-alert { color: var(--color-danger); font-weight: 600; }
+
+        /* EEG Band Power Bars */
+        .band-bars {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .band-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .band-label {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: var(--text-main);
+            min-width: 62px;
+            line-height: 1.2;
+        }
+
+        .band-hz {
+            font-size: 0.62rem;
+            font-weight: 500;
+            color: var(--text-subtle);
+        }
+
+        .band-track {
+            flex: 1;
+            height: 14px;
+            background: var(--bg-subtle);
+            border: 1px solid var(--border-light);
+            border-radius: 7px;
+            overflow: hidden;
+        }
+
+        .band-fill {
+            height: 100%;
+            border-radius: 7px;
+            transition: width 0.5s ease;
+        }
+
+        .band-delta { background: linear-gradient(90deg, #6366f1, #818cf8); }
+        .band-theta { background: linear-gradient(90deg, #06b6d4, #22d3ee); }
+        .band-alpha { background: linear-gradient(90deg, #16a34a, #4ade80); }
+        .band-beta  { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+
+        .band-pct {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            min-width: 32px;
+            text-align: right;
+        }
+
+        @media (max-width: 960px) {
+            .main-wrapper {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header Navigation -->
+    <header>
+        <div class="header-left">
+            <div class="logo-icon">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2z"></path>
+                    <path d="M12 6v6l4 2"></path>
+                </svg>
+            </div>
+            <div class="header-title">
+                <h1>NeuroWheel System Simulator</h1>
+                <p>Brain-Computer Interface Closed-Loop Mobility Controller</p>
+            </div>
+        </div>
+        <div>
+            <div class="system-status">
+                <span class="status-dot"></span>
+                <span>Hardware Bridge: Online</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Workspace Layout -->
+    <div class="main-wrapper">
+        <!-- Left: Simulation Arena -->
+        <div class="panel">
+            <div class="panel-header">
+                <div class="panel-title">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                        <line x1="3" y1="9" x2="21" y2="9"></line>
+                        <line x1="9" y1="21" x2="9" y2="9"></line>
+                    </svg>
+                    <span>2D Test Arena</span>
+                </div>
+                <div class="panel-subtitle">Keyboard: <b>W/A/S/D</b> or <b>Arrow Keys</b> | Space: <b>Emergency Stop</b></div>
+            </div>
+            <div class="arena-wrapper" id="arenaWrapper">
+                <canvas id="simCanvas"></canvas>
+                <div class="arena-helper">Drag the rectangular obstacle anywhere on the arena to test avoidance radar.</div>
+            </div>
+        </div>
+
+        <!-- Right: Telemetry & Controls Dashboard -->
+        <div class="dashboard-col">
+            <!-- Brain Signal Activity Card -->
+            <div class="card">
+                <div class="card-heading">
+                    <span>EEG Cortical Signal</span>
+                    <span id="stateLabel" style="color: var(--color-primary); font-family: 'JetBrains Mono', monospace; font-size: 0.78rem;">STOPPED ('s')</span>
+                </div>
+                <div class="eeg-container">
+                    <canvas id="eegCanvas"></canvas>
+                </div>
+
+                <div class="metric-grid">
+                    <div class="metric-box">
+                        <div class="metric-label">Front Clearance</div>
+                        <div class="metric-value" id="frontDistVal">180 cm</div>
+                    </div>
+                    <div class="metric-box">
+                        <div class="metric-label">Steering Servo</div>
+                        <div class="metric-value" id="servoAngleVal">55°</div>
+                    </div>
+                    <div class="metric-box">
+                        <div class="metric-label">Motor Output</div>
+                        <div class="metric-value" id="pwmVal">180 PWM</div>
+                    </div>
+                    <div class="metric-box">
+                        <div class="metric-label">Collision Status</div>
+                        <div class="metric-value" id="safetyVal" style="color: var(--color-success);">CLEAR</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- EEG Band Power Visualization (Inspired by megazron/eeg-operated-wheelchair PSD analysis) -->
+            <div class="card">
+                <div class="card-heading">
+                    <span>EEG Band Power (PSD)</span>
+                    <span id="dominantBand" style="color: var(--color-primary); font-family: 'JetBrains Mono', monospace; font-size: 0.75rem;">ALPHA dominant</span>
+                </div>
+                <div class="band-bars">
+                    <div class="band-row">
+                        <span class="band-label">δ Delta<br><span class="band-hz">0.5–4 Hz</span></span>
+                        <div class="band-track"><div class="band-fill band-delta" id="barDelta" style="width: 20%;"></div></div>
+                        <span class="band-pct" id="pctDelta">20%</span>
+                    </div>
+                    <div class="band-row">
+                        <span class="band-label">θ Theta<br><span class="band-hz">4–7 Hz</span></span>
+                        <div class="band-track"><div class="band-fill band-theta" id="barTheta" style="width: 15%;"></div></div>
+                        <span class="band-pct" id="pctTheta">15%</span>
+                    </div>
+                    <div class="band-row">
+                        <span class="band-label">α Alpha<br><span class="band-hz">8–13 Hz</span></span>
+                        <div class="band-track"><div class="band-fill band-alpha" id="barAlpha" style="width: 45%;"></div></div>
+                        <span class="band-pct" id="pctAlpha">45%</span>
+                    </div>
+                    <div class="band-row">
+                        <span class="band-label">β Beta<br><span class="band-hz">14–30 Hz</span></span>
+                        <div class="band-track"><div class="band-fill band-beta" id="barBeta" style="width: 20%;"></div></div>
+                        <span class="band-pct" id="pctBeta">20%</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Direction & Speed Triggers -->
+            <div class="card">
+                <div class="card-heading">
+                    <span>Navigation Commands</span>
+                </div>
+
+                <div class="nav-grid">
+                    <div></div>
+                    <button class="nav-btn" id="btnF" onclick="triggerCmd('f')">
+                        <svg viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"></polyline></svg>
+                        <span>Forward</span>
+                    </button>
+                    <div></div>
+
+                    <button class="nav-btn" id="btnL" onclick="triggerCmd('l')">
+                        <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                        <span>Left</span>
+                    </button>
+                    <button class="nav-btn btn-brake" id="btnS" onclick="triggerCmd('s')">
+                        <svg viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="1"></rect></svg>
+                        <span>Brake</span>
+                    </button>
+                    <button class="nav-btn" id="btnR" onclick="triggerCmd('r')">
+                        <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                        <span>Right</span>
+                    </button>
+
+                    <div></div>
+                    <button class="nav-btn" id="btnB" onclick="triggerCmd('b')">
+                        <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                        <span>Reverse</span>
+                    </button>
+                    <div></div>
+                </div>
+
+                <!-- Speed Gear Selection -->
+                <div class="gear-row">
+                    <button class="gear-btn" id="gear1" onclick="setGear('1', 120)">Gear 1 (120)</button>
+                    <button class="gear-btn active" id="gear2" onclick="setGear('2', 180)">Gear 2 (180)</button>
+                    <button class="gear-btn" id="gear3" onclick="setGear('3', 255)">Gear 3 (255)</button>
+                </div>
+
+                <!-- Voice Assist Option -->
+                <div class="voice-bar">
+                    <button class="voice-btn" id="voiceBtn" onclick="toggleVoice()">
+                        <svg viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
+                        <span id="voiceBtnText">Voice Command Fallback</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Console Log -->
+            <div class="card" style="flex: 1;">
+                <div class="card-heading">
+                    <span>Telemetry Stream</span>
+                </div>
+                <div class="log-container" id="logBox">
+                    <div><span class="log-time">00:00:01</span> <span class="log-msg">System initialized.</span></div>
+                    <div><span class="log-time">00:00:02</span> <span class="log-msg">Listening on UDP port 6868.</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Preload wheelchair sprite image & remove white background
+        const wheelchairImg = new Image();
+        let wheelchairImgReady = false;
+        const _rawWheelchair = new Image();
+        _rawWheelchair.src = 'images/wheelchair_topdown.jpg';
+        _rawWheelchair.onload = () => {
+            // Remove white background using offscreen canvas
+            const offCanvas = document.createElement('canvas');
+            offCanvas.width = _rawWheelchair.width;
+            offCanvas.height = _rawWheelchair.height;
+            const offCtx = offCanvas.getContext('2d');
+            offCtx.drawImage(_rawWheelchair, 0, 0);
+            const imgData = offCtx.getImageData(0, 0, offCanvas.width, offCanvas.height);
+            const d = imgData.data;
+            for (let i = 0; i < d.length; i += 4) {
+                // Make near-white pixels transparent
+                if (d[i] > 225 && d[i+1] > 225 && d[i+2] > 225) {
+                    d[i+3] = 0; // alpha = 0
+                }
+            }
+            offCtx.putImageData(imgData, 0, 0);
+            wheelchairImg.src = offCanvas.toDataURL('image/png');
+            wheelchairImg.onload = () => { wheelchairImgReady = true; };
+        };
+
+        // Preload obstacle sprite image & remove white background
+        const obstacleImg = new Image();
+        let obstacleImgReady = false;
+        const _rawObstacle = new Image();
+        _rawObstacle.src = 'images/obstacle_topdown.jpg';
+        _rawObstacle.onload = () => {
+            const offCanvas = document.createElement('canvas');
+            offCanvas.width = _rawObstacle.width;
+            offCanvas.height = _rawObstacle.height;
+            const offCtx = offCanvas.getContext('2d');
+            offCtx.drawImage(_rawObstacle, 0, 0);
+            const imgData = offCtx.getImageData(0, 0, offCanvas.width, offCanvas.height);
+            const d = imgData.data;
+            for (let i = 0; i < d.length; i += 4) {
+                if (d[i] > 225 && d[i+1] > 225 && d[i+2] > 225) {
+                    d[i+3] = 0;
+                }
+            }
+            offCtx.putImageData(imgData, 0, 0);
+            obstacleImg.src = offCanvas.toDataURL('image/png');
+            obstacleImg.onload = () => { obstacleImgReady = true; };
+        };
+
+        // State Configuration
+        const state = {
+            x: 240,
+            y: 260,
+            angle: 0,
+            speed: 0,
+            targetSpeed: 0,
+            currentCmd: 's',
+            gear: '2',
+            pwm: 180,
+            servoAngle: 55,
+            obstacle: { x: 420, y: 260, w: 50, h: 50 },
+            frontDist: 200,
+            audioCtx: null
+        };
+
+        const simCanvas = document.getElementById('simCanvas');
+        const simCtx = simCanvas.getContext('2d');
+        const eegCanvas = document.getElementById('eegCanvas');
+        const eegCtx = eegCanvas.getContext('2d');
+
+        function resizeCanvases() {
+            const rect = document.getElementById('arenaWrapper').getBoundingClientRect();
+            simCanvas.width = rect.width;
+            simCanvas.height = rect.height;
+
+            eegCanvas.width = eegCanvas.parentElement.clientWidth;
+            eegCanvas.height = eegCanvas.parentElement.clientHeight;
+        }
+        window.addEventListener('resize', resizeCanvases);
+        setTimeout(resizeCanvases, 100);
+
+        function playBuzzer() {
+            try {
+                if (!state.audioCtx) state.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = state.audioCtx.createOscillator();
+                const gain = state.audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(800, state.audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.04, state.audioCtx.currentTime);
+                osc.connect(gain);
+                gain.connect(state.audioCtx.destination);
+                osc.start();
+                osc.stop(state.audioCtx.currentTime + 0.06);
+            } catch(e) {}
+        }
+
+        function log(msg, isAlert=false) {
+            const logBox = document.getElementById('logBox');
+            const now = new Date().toTimeString().split(' ')[0];
+            const div = document.createElement('div');
+            div.innerHTML = `<span class="log-time">${now}</span> <span class="${isAlert ? 'log-alert' : 'log-msg'}">${msg}</span>`;
+            logBox.appendChild(div);
+            logBox.scrollTop = logBox.scrollHeight;
+        }
+
+        function triggerCmd(cmd) {
+            state.currentCmd = cmd;
+            const names = { f: "FORWARD ('f')", b: "BACKWARD ('b')", l: "TURN LEFT ('l')", r: "TURN RIGHT ('r')", s: "STOP ('s')" };
+            document.getElementById('stateLabel').innerText = names[cmd] || cmd;
+            log(`Command received: '${cmd}' (${names[cmd] || ''})`);
+
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            const btnMap = { f: 'btnF', b: 'btnB', l: 'btnL', r: 'btnR', s: 'btnS' };
+            if (btnMap[cmd]) document.getElementById(btnMap[cmd]).classList.add('active');
+
+            if (cmd === 'f') {
+                state.targetSpeed = (state.pwm / 255) * 3.0;
+                state.servoAngle = 55;
+            } else if (cmd === 'b') {
+                state.targetSpeed = -(state.pwm / 255) * 2.0;
+                state.servoAngle = 55;
+            } else if (cmd === 'l') {
+                state.servoAngle = 110;
+                state.angle -= 0.5;
+                state.targetSpeed = 1.0;
+            } else if (cmd === 'r') {
+                state.servoAngle = 10;
+                state.angle += 0.5;
+                state.targetSpeed = 1.0;
+            } else if (cmd === 's') {
+                state.targetSpeed = 0;
+                state.speed = 0;
+                state.servoAngle = 55;
+            }
+        }
+
+        function setGear(gearNum, pwmVal) {
+            state.gear = gearNum;
+            state.pwm = pwmVal;
+            document.querySelectorAll('.gear-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(`gear${gearNum}`).classList.add('active');
+            document.getElementById('pwmVal').innerText = `${pwmVal} PWM`;
+            log(`Speed Gear changed to ${gearNum} (${pwmVal} PWM)`);
+            if (state.currentCmd === 'f') state.targetSpeed = (state.pwm / 255) * 3.0;
+        }
+
+        // Draggable Obstacle
+        let isDragging = false;
+        simCanvas.addEventListener('mousedown', (e) => {
+            const rect = simCanvas.getBoundingClientRect();
+            state.obstacle.x = e.clientX - rect.left;
+            state.obstacle.y = e.clientY - rect.top;
+            isDragging = true;
+        });
+        simCanvas.addEventListener('mousemove', (e) => {
+            if (isDragging) {
+                const rect = simCanvas.getBoundingClientRect();
+                state.obstacle.x = e.clientX - rect.left;
+                state.obstacle.y = e.clientY - rect.top;
+            }
+        });
+        window.addEventListener('mouseup', () => isDragging = false);
+
+        // Keyboard Controls
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'w' || e.key === 'W' || e.key === 'ArrowUp') triggerCmd('f');
+            if (e.key === 's' || e.key === 'S' || e.key === 'ArrowDown') triggerCmd('b');
+            if (e.key === 'a' || e.key === 'A' || e.key === 'ArrowLeft') triggerCmd('l');
+            if (e.key === 'd' || e.key === 'D' || e.key === 'ArrowRight') triggerCmd('r');
+            if (e.key === ' ') { triggerCmd('s'); e.preventDefault(); }
+            if (e.key === '1') setGear('1', 120);
+            if (e.key === '2') setGear('2', 180);
+            if (e.key === '3') setGear('3', 255);
+        });
+
+        // Speech Recognition
+        let recognition = null;
+        let isListening = false;
+        function toggleVoice() {
+            if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+                alert("Speech recognition is not supported in this browser.");
+                return;
+            }
+            if (!recognition) {
+                const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+                recognition = new SpeechRec();
+                recognition.continuous = true;
+                recognition.interimResults = false;
+                recognition.onresult = (e) => {
+                    const phrase = e.results[e.results.length - 1][0].transcript.toLowerCase().trim();
+                    log(`Voice heard: "${phrase}"`);
+                    if (phrase.includes('forward') || phrase.includes('front') || phrase.includes('go')) triggerCmd('f');
+                    else if (phrase.includes('back') || phrase.includes('reverse')) triggerCmd('b');
+                    else if (phrase.includes('left')) triggerCmd('l');
+                    else if (phrase.includes('right')) triggerCmd('r');
+                    else if (phrase.includes('stop') || phrase.includes('brake')) triggerCmd('s');
+                };
+            }
+
+            if (!isListening) {
+                recognition.start();
+                isListening = true;
+                document.getElementById('voiceBtn').classList.add('listening');
+                document.getElementById('voiceBtnText').innerText = "Listening for voice...";
+            } else {
+                recognition.stop();
+                isListening = false;
+                document.getElementById('voiceBtn').classList.remove('listening');
+                document.getElementById('voiceBtnText').innerText = "Voice Command Fallback";
+            }
+        }
+
+        // Distance Ranging
+        function getDistance() {
+            const dx = state.obstacle.x - state.x;
+            const dy = state.obstacle.y - state.y;
+            const dist = Math.hypot(dx, dy) - 25;
+            const angleToObs = Math.atan2(dy, dx);
+            let diffAngle = Math.abs(angleToObs - state.angle);
+            while (diffAngle > Math.PI) diffAngle -= Math.PI * 2;
+            diffAngle = Math.abs(diffAngle);
+
+            if (diffAngle < 0.65) {
+                return Math.max(5, Math.round(dist * 0.65));
+            }
+            return 250;
+        }
+
+        // Physics & Rendering Loop
+        let waveOffset = 0;
+        function loop() {
+            state.frontDist = getDistance();
+            document.getElementById('frontDistVal').innerText = `${state.frontDist} cm`;
+            document.getElementById('servoAngleVal').innerText = `${state.servoAngle}°`;
+
+            const safetyEl = document.getElementById('safetyVal');
+
+            if (state.frontDist < 30) {
+                safetyEl.innerText = "OBSTACLE DETECTED";
+                safetyEl.style.color = "var(--color-danger)";
+                playBuzzer();
+
+                // Automatic Obstacle Avoidance
+                state.angle += 0.035;
+                state.servoAngle = 10;
+                state.x += Math.cos(state.angle) * 1.2;
+                state.y += Math.sin(state.angle) * 1.2;
+            } else {
+                safetyEl.innerText = "CLEAR";
+                safetyEl.style.color = "var(--color-success)";
+
+                state.speed += (state.targetSpeed - state.speed) * 0.15;
+                state.x += Math.cos(state.angle) * state.speed;
+                state.y += Math.sin(state.angle) * state.speed;
+            }
+
+            const pad = 35;
+            state.x = Math.max(pad, Math.min(simCanvas.width - pad, state.x));
+            state.y = Math.max(pad, Math.min(simCanvas.height - pad, state.y));
+
+            drawArena();
+            drawEEG();
+
+            requestAnimationFrame(loop);
+        }
+
+        function drawArena() {
+            const w = simCanvas.width;
+            const h = simCanvas.height;
+            simCtx.clearRect(0, 0, w, h);
+
+            // Clean Grid Lines
+            simCtx.strokeStyle = '#f1f5f9';
+            simCtx.lineWidth = 1;
+            for (let x = 0; x < w; x += 32) {
+                simCtx.beginPath(); simCtx.moveTo(x, 0); simCtx.lineTo(x, h); simCtx.stroke();
+            }
+            for (let y = 0; y < h; y += 32) {
+                simCtx.beginPath(); simCtx.moveTo(0, y); simCtx.lineTo(w, y); simCtx.stroke();
+            }
+
+            // Draw Obstacle (Realistic Sprite)
+            simCtx.save();
+            if (obstacleImgReady) {
+                const obsSize = 55;
+                simCtx.drawImage(obstacleImg, state.obstacle.x - obsSize / 2, state.obstacle.y - obsSize / 2, obsSize, obsSize);
+            } else {
+                // Fallback: simple rectangle if image not loaded
+                simCtx.fillStyle = '#fee2e2';
+                simCtx.strokeStyle = '#ef4444';
+                simCtx.lineWidth = 2;
+                simCtx.beginPath();
+                simCtx.roundRect(state.obstacle.x - 25, state.obstacle.y - 25, 50, 50, 6);
+                simCtx.fill();
+                simCtx.stroke();
+            }
+            simCtx.restore();
+
+            // Draw Ultrasonic Radar Cone
+            simCtx.save();
+            simCtx.translate(state.x, state.y);
+            simCtx.rotate(state.angle);
+
+            const radarLen = Math.min(180, state.frontDist * 1.5 + 20);
+            const isAlert = state.frontDist < 30;
+
+            const grad = simCtx.createRadialGradient(0, 0, 10, 0, 0, radarLen);
+            grad.addColorStop(0, isAlert ? 'rgba(239, 68, 68, 0.25)' : 'rgba(37, 99, 235, 0.18)');
+            grad.addColorStop(1, isAlert ? 'rgba(239, 68, 68, 0)' : 'rgba(37, 99, 235, 0)');
+
+            simCtx.fillStyle = grad;
+            simCtx.beginPath();
+            simCtx.moveTo(0, 0);
+            simCtx.arc(0, 0, radarLen, -0.35, 0.35);
+            simCtx.closePath();
+            simCtx.fill();
+
+            simCtx.strokeStyle = isAlert ? '#ef4444' : '#60a5fa';
+            simCtx.setLineDash([4, 4]);
+            simCtx.lineWidth = 1.5;
+            simCtx.beginPath();
+            simCtx.moveTo(0, 0);
+            simCtx.lineTo(radarLen, 0);
+            simCtx.stroke();
+
+            // Wheelchair Sprite (Realistic Image)
+            simCtx.setLineDash([]);
+            if (wheelchairImgReady) {
+                // Source image faces upward (negative Y), canvas angle=0 faces right (+X)
+                // Rotate sprite -π/2 so its "forward" aligns with canvas heading
+                simCtx.rotate(-Math.PI / 2);
+                const spriteSize = 70;
+                simCtx.drawImage(wheelchairImg, -spriteSize / 2, -spriteSize / 2, spriteSize, spriteSize);
+                // Undo the extra rotation for the heading arrow
+                simCtx.rotate(Math.PI / 2);
+            } else {
+                // Fallback: simple rectangle if image not loaded
+                simCtx.fillStyle = '#0f172a';
+                simCtx.strokeStyle = '#334155';
+                simCtx.lineWidth = 1.5;
+                simCtx.beginPath();
+                simCtx.roundRect(-22, -18, 44, 36, 6);
+                simCtx.fill();
+                simCtx.stroke();
+            }
+
+            // Heading Arrow
+            simCtx.fillStyle = '#60a5fa';
+            simCtx.beginPath();
+            simCtx.moveTo(38, 0);
+            simCtx.lineTo(30, -6);
+            simCtx.lineTo(30, 6);
+            simCtx.closePath();
+            simCtx.fill();
+
+            simCtx.restore();
+        }
+
+        function drawEEG() {
+            const w = eegCanvas.width;
+            const h = eegCanvas.height;
+            eegCtx.clearRect(0, 0, w, h);
+            waveOffset += 0.05;
+
+            const isFocus = state.currentCmd !== 's';
+            const amplitude = isFocus ? 16 : 5;
+            const freq = isFocus ? 0.04 : 0.015;
+
+            // Baseline
+            eegCtx.strokeStyle = '#e2e8f0';
+            eegCtx.lineWidth = 1;
+            eegCtx.beginPath();
+            eegCtx.moveTo(0, h / 2);
+            eegCtx.lineTo(w, h / 2);
+            eegCtx.stroke();
+
+            // Wave
+            eegCtx.strokeStyle = isFocus ? '#2563eb' : '#94a3b8';
+            eegCtx.lineWidth = 1.8;
+            eegCtx.beginPath();
+            for (let x = 0; x < w; x++) {
+                const y = h / 2 + Math.sin((x * freq) + waveOffset) * amplitude + Math.sin((x * 0.08) - waveOffset * 1.5) * (amplitude * 0.35);
+                if (x === 0) eegCtx.moveTo(x, y);
+                else eegCtx.lineTo(x, y);
+            }
+            eegCtx.stroke();
+        }
+
+        // EEG Band Power Simulation (inspired by megazron PSD analysis)
+        let bandFrame = 0;
+        function updateBandPowers() {
+            bandFrame++;
+            const isFocus = state.currentCmd !== 's';
+            const isForward = state.currentCmd === 'f';
+            const isTurn = state.currentCmd === 'l' || state.currentCmd === 'r';
+
+            // Simulate realistic band power based on wheelchair state
+            let delta, theta, alpha, beta;
+            const noise = () => (Math.random() - 0.5) * 6;
+
+            if (isForward) {
+                // Focused forward → high beta, low alpha
+                delta = 10 + noise();
+                theta = 10 + noise();
+                alpha = 18 + noise();
+                beta  = 55 + noise();
+            } else if (isTurn) {
+                // Turning → moderate beta, moderate alpha
+                delta = 12 + noise();
+                theta = 15 + noise();
+                alpha = 28 + noise();
+                beta  = 38 + noise();
+            } else if (state.currentCmd === 'b') {
+                // Backward → elevated theta + beta mix
+                delta = 12 + noise();
+                theta = 25 + noise();
+                alpha = 22 + noise();
+                beta  = 35 + noise();
+            } else {
+                // Stopped / relaxed → high alpha, low beta
+                delta = 15 + noise();
+                theta = 12 + noise();
+                alpha = 52 + noise();
+                beta  = 14 + noise();
+            }
+
+            // Normalize to 100%
+            const total = delta + theta + alpha + beta;
+            delta = Math.max(2, Math.round(delta / total * 100));
+            theta = Math.max(2, Math.round(theta / total * 100));
+            alpha = Math.max(2, Math.round(alpha / total * 100));
+            beta  = Math.max(2, Math.round(beta / total * 100));
+
+            // Update bar widths
+            document.getElementById('barDelta').style.width = delta + '%';
+            document.getElementById('barTheta').style.width = theta + '%';
+            document.getElementById('barAlpha').style.width = alpha + '%';
+            document.getElementById('barBeta').style.width = beta + '%';
+
+            // Update percentage text
+            document.getElementById('pctDelta').innerText = delta + '%';
+            document.getElementById('pctTheta').innerText = theta + '%';
+            document.getElementById('pctAlpha').innerText = alpha + '%';
+            document.getElementById('pctBeta').innerText = beta + '%';
+
+            // Find dominant band
+            const bands = { DELTA: delta, THETA: theta, ALPHA: alpha, BETA: beta };
+            const dominant = Object.entries(bands).sort((a, b) => b[1] - a[1])[0][0];
+            document.getElementById('dominantBand').innerText = dominant + ' dominant';
+        }
+
+        // Run band power update at ~2 Hz (every 500ms)
+        setInterval(updateBandPowers, 500);
+
+        requestAnimationFrame(loop);
+    </script>
+</body>
+</html>
