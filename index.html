@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NeuroWheel - BCI Wheelchair Simulator</title>
+    <title>NeuroWheel - BCI Wheelchair Simulator & Web Hardware Dashboard</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -32,6 +32,24 @@
             --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.06), 0 4px 6px -4px rgba(0, 0, 0, 0.04);
         }
 
+        /* Dark Theme Variables */
+        body.theme-dark {
+            --bg-page: #0b0f19;
+            --bg-card: #111827;
+            --bg-subtle: #1f2937;
+            --border-light: #374151;
+            --border-focus: #4b5563;
+            --text-main: #f9fafb;
+            --text-muted: #9ca3af;
+            --text-subtle: #6b7280;
+            --color-primary: #3b82f6;
+            --color-primary-light: #1e3a8a;
+            --color-success: #22c55e;
+            --color-success-light: #064e3b;
+            --color-danger: #ef4444;
+            --color-danger-light: #7f1d1d;
+        }
+
         * {
             box-sizing: border-box;
             margin: 0;
@@ -47,9 +65,10 @@
             min-height: 100vh;
             display: flex;
             flex-direction: column;
+            transition: background-color 0.2s, color 0.2s;
         }
 
-        /* Navbar Header */
+        /* Header */
         header {
             background: var(--bg-card);
             border-bottom: 1px solid var(--border-light);
@@ -90,6 +109,38 @@
             color: var(--text-muted);
         }
 
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-serial {
+            background: var(--bg-subtle);
+            border: 1px solid var(--border-light);
+            color: var(--text-main);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.15s;
+        }
+
+        .btn-serial:hover {
+            border-color: var(--color-primary);
+            color: var(--color-primary);
+        }
+
+        .btn-serial.connected {
+            background: var(--color-success-light);
+            border-color: var(--color-success);
+            color: var(--color-success);
+        }
+
         .system-status {
             display: flex;
             align-items: center;
@@ -115,141 +166,191 @@
         .main-wrapper {
             flex: 1;
             display: grid;
-            grid-template-columns: 1fr 380px;
+            grid-template-columns: 1fr 400px;
             gap: 20px;
             padding: 20px 28px;
-            max-width: 1540px;
-            margin: 0 auto;
-            width: 100%;
         }
 
-        /* Simulation Canvas Panel */
         .panel {
             background: var(--bg-card);
             border: 1px solid var(--border-light);
             border-radius: 12px;
-            box-shadow: var(--shadow-sm);
+            padding: 16px;
             display: flex;
             flex-direction: column;
-            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+            position: relative;
         }
 
         .panel-header {
-            padding: 12px 18px;
-            border-bottom: 1px solid var(--border-light);
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: #ffffff;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+            gap: 10px;
         }
 
         .panel-title {
-            font-size: 0.88rem;
-            font-weight: 600;
-            color: var(--text-main);
             display: flex;
             align-items: center;
             gap: 8px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--text-main);
         }
 
-        .panel-subtitle {
-            font-size: 0.75rem;
+        .mode-toggles {
+            display: flex;
+            background: var(--bg-subtle);
+            padding: 3px;
+            border-radius: 8px;
+            gap: 4px;
+        }
+
+        .mode-btn {
+            padding: 4px 10px;
+            border: none;
+            background: transparent;
             color: var(--text-muted);
-        }
-
-        .arena-wrapper {
-            flex: 1;
-            position: relative;
-            background: #ffffff;
-            min-height: 480px;
-            cursor: crosshair;
-        }
-
-        canvas#simCanvas {
-            width: 100%;
-            height: 100%;
-            display: block;
-        }
-
-        .arena-helper {
-            position: absolute;
-            bottom: 12px;
-            left: 16px;
-            background: rgba(255, 255, 255, 0.92);
-            border: 1px solid var(--border-light);
-            padding: 6px 12px;
-            border-radius: 6px;
             font-size: 0.72rem;
-            color: var(--text-muted);
-            pointer-events: none;
+            font-weight: 600;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .mode-btn.active {
+            background: var(--bg-card);
+            color: var(--color-primary);
             box-shadow: var(--shadow-sm);
         }
 
-        /* Dashboard Right Column */
+        /* Arena Container */
+        .arena-wrapper {
+            flex: 1;
+            position: relative;
+            background: var(--bg-subtle);
+            border: 1px solid var(--border-light);
+            border-radius: 8px;
+            overflow: hidden;
+            min-height: 480px;
+        }
+
+        canvas#simCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: block;
+            cursor: crosshair;
+        }
+
+        .arena-toolbar {
+            position: absolute;
+            bottom: 12px;
+            left: 12px;
+            right: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(8px);
+            border: 1px solid var(--border-light);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            pointer-events: auto;
+        }
+
+        body.theme-dark .arena-toolbar {
+            background: rgba(17, 24, 39, 0.85);
+        }
+
+        .map-selector {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .map-select {
+            background: var(--bg-card);
+            border: 1px solid var(--border-light);
+            color: var(--text-main);
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        /* Dashboard Column */
         .dashboard-col {
             display: flex;
             flex-direction: column;
-            gap: 16px;
+            gap: 14px;
         }
 
         .card {
             background: var(--bg-card);
             border: 1px solid var(--border-light);
             border-radius: 12px;
-            padding: 16px;
+            padding: 14px;
             box-shadow: var(--shadow-sm);
         }
 
         .card-heading {
-            font-size: 0.84rem;
-            font-weight: 600;
-            color: var(--text-main);
             display: flex;
             justify-content: space-between;
             align-items: center;
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: var(--text-main);
             margin-bottom: 10px;
         }
 
-        /* EEG Wave Visualizer */
+        /* EEG Activity Canvas */
         .eeg-container {
-            height: 90px;
+            height: 60px;
             background: var(--bg-subtle);
             border: 1px solid var(--border-light);
             border-radius: 8px;
-            overflow: hidden;
             position: relative;
+            overflow: hidden;
+            margin-bottom: 10px;
         }
 
         canvas#eegCanvas {
             width: 100%;
             height: 100%;
+            display: block;
         }
 
         /* Metric Grid */
         .metric-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-top: 12px;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
         }
 
         .metric-box {
             background: var(--bg-subtle);
             border: 1px solid var(--border-light);
-            padding: 10px 12px;
             border-radius: 8px;
+            padding: 8px 10px;
         }
 
         .metric-label {
-            font-size: 0.7rem;
+            font-size: 0.68rem;
             font-weight: 600;
             color: var(--text-muted);
             text-transform: uppercase;
-            letter-spacing: 0.04em;
         }
 
         .metric-value {
-            font-size: 1.05rem;
+            font-size: 1rem;
             font-weight: 700;
             color: var(--color-primary);
             font-family: 'JetBrains Mono', monospace;
@@ -260,29 +361,29 @@
         .nav-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 8px;
-            margin-top: 8px;
+            gap: 6px;
+            margin-top: 6px;
         }
 
         .nav-btn {
             background: var(--bg-card);
             border: 1px solid var(--border-light);
             color: var(--text-main);
-            padding: 10px 6px;
+            padding: 8px 4px;
             border-radius: 8px;
             font-weight: 600;
-            font-size: 0.8rem;
+            font-size: 0.78rem;
             cursor: pointer;
             transition: all 0.15s ease;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 4px;
+            gap: 3px;
         }
 
         .nav-btn svg {
-            width: 18px;
-            height: 18px;
+            width: 16px;
+            height: 16px;
             stroke: currentColor;
             stroke-width: 2;
             fill: none;
@@ -312,62 +413,63 @@
             border-color: var(--color-danger);
         }
 
-        /* Gear Buttons */
+        /* Gear & Voice */
         .gear-row {
             display: flex;
-            gap: 8px;
-            margin-top: 10px;
+            gap: 6px;
+            margin-top: 8px;
         }
 
         .gear-btn {
             flex: 1;
-            padding: 8px 4px;
+            padding: 6px 4px;
             background: var(--bg-subtle);
             border: 1px solid var(--border-light);
             color: var(--text-muted);
             border-radius: 6px;
             font-weight: 600;
-            font-size: 0.75rem;
+            font-size: 0.72rem;
             cursor: pointer;
             transition: all 0.15s;
         }
 
         .gear-btn.active {
             background: var(--text-main);
-            color: #ffffff;
+            color: var(--bg-card);
             border-color: var(--text-main);
         }
 
-        /* Voice Button */
         .voice-bar {
-            margin-top: 10px;
+            margin-top: 8px;
+            display: flex;
+            gap: 6px;
         }
 
-        .voice-btn {
-            width: 100%;
+        .voice-btn, .export-btn {
+            flex: 1;
             background: var(--bg-card);
             border: 1px solid var(--border-light);
             color: var(--text-main);
-            padding: 9px 12px;
-            border-radius: 8px;
+            padding: 7px 10px;
+            border-radius: 6px;
             font-weight: 600;
-            font-size: 0.78rem;
+            font-size: 0.74rem;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
+            gap: 6px;
             transition: all 0.15s;
         }
 
-        .voice-btn svg {
-            width: 16px;
-            height: 16px;
+        .voice-btn svg, .export-btn svg {
+            width: 14px;
+            height: 14px;
             stroke: currentColor;
             fill: none;
         }
 
-        .voice-btn:hover {
+        .voice-btn:hover, .export-btn:hover {
             background: var(--bg-subtle);
         }
 
@@ -377,66 +479,46 @@
             border-color: var(--color-danger);
         }
 
-        /* Telemetry Log Box */
-        .log-container {
-            height: 110px;
-            background: var(--bg-subtle);
-            border: 1px solid var(--border-light);
-            border-radius: 8px;
-            padding: 8px 12px;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.72rem;
-            color: var(--text-muted);
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-
-        .log-time { color: var(--text-subtle); margin-right: 6px; }
-        .log-msg { color: var(--text-main); font-weight: 500; }
-        .log-alert { color: var(--color-danger); font-weight: 600; }
-
-        /* EEG Band Power Bars */
+        /* EEG Band Bars */
         .band-bars {
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 6px;
         }
 
         .band-row {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
         }
 
         .band-label {
-            font-size: 0.72rem;
+            font-size: 0.7rem;
             font-weight: 700;
             color: var(--text-main);
-            min-width: 62px;
-            line-height: 1.2;
+            min-width: 58px;
+            line-height: 1.1;
         }
 
         .band-hz {
-            font-size: 0.62rem;
+            font-size: 0.6rem;
             font-weight: 500;
             color: var(--text-subtle);
         }
 
         .band-track {
             flex: 1;
-            height: 14px;
+            height: 12px;
             background: var(--bg-subtle);
             border: 1px solid var(--border-light);
-            border-radius: 7px;
+            border-radius: 6px;
             overflow: hidden;
         }
 
         .band-fill {
             height: 100%;
-            border-radius: 7px;
-            transition: width 0.5s ease;
+            border-radius: 6px;
+            transition: width 0.4s ease;
         }
 
         .band-delta { background: linear-gradient(90deg, #6366f1, #818cf8); }
@@ -446,12 +528,33 @@
 
         .band-pct {
             font-family: 'JetBrains Mono', monospace;
-            font-size: 0.72rem;
+            font-size: 0.7rem;
             font-weight: 600;
             color: var(--text-muted);
-            min-width: 32px;
+            min-width: 30px;
             text-align: right;
         }
+
+        /* Telemetry Stream Box */
+        .log-container {
+            height: 100px;
+            background: var(--bg-subtle);
+            border: 1px solid var(--border-light);
+            border-radius: 8px;
+            padding: 6px 10px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        .log-time { color: var(--text-subtle); margin-right: 6px; }
+        .log-msg { color: var(--text-main); font-weight: 500; }
+        .log-alert { color: var(--color-danger); font-weight: 600; }
+        .log-serial { color: var(--color-primary); font-weight: 600; }
 
         @media (max-width: 960px) {
             .main-wrapper {
@@ -462,7 +565,7 @@
 </head>
 <body>
 
-    <!-- Header Navigation -->
+    <!-- Header -->
     <header>
         <div class="header-left">
             <div class="logo-icon">
@@ -472,19 +575,25 @@
                 </svg>
             </div>
             <div class="header-title">
-                <h1>NeuroWheel System Simulator</h1>
+                <h1>NeuroWheel BCI Dashboard & Simulator</h1>
                 <p>Brain-Computer Interface Closed-Loop Mobility Controller</p>
             </div>
         </div>
-        <div>
+        <div class="header-actions">
+            <!-- Web Serial Direct USB Link -->
+            <button class="btn-serial" id="btnConnectSerial" onclick="connectWebSerial()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+                <span id="serialStatusText">Connect USB Arduino</span>
+            </button>
+            <button class="btn-serial" onclick="toggleTheme()">🌓 Theme</button>
             <div class="system-status">
                 <span class="status-dot"></span>
-                <span>Hardware Bridge: Online</span>
+                <span id="systemStatusText">DSP Online</span>
             </div>
         </div>
     </header>
 
-    <!-- Main Workspace Layout -->
+    <!-- Main Grid -->
     <div class="main-wrapper">
         <!-- Left: Simulation Arena -->
         <div class="panel">
@@ -497,21 +606,37 @@
                     </svg>
                     <span>2D Test Arena</span>
                 </div>
-                <div class="panel-subtitle">Keyboard: <b>W/A/S/D</b> or <b>Arrow Keys</b> | Space: <b>Emergency Stop</b></div>
+                <!-- Control Mode Switcher -->
+                <div class="mode-toggles">
+                    <button class="mode-btn active" id="modeManual" onclick="setMode('manual')">Keyboard / Manual</button>
+                    <button class="mode-btn" id="modeBCI" onclick="setMode('bci')">Simulated BCI</button>
+                    <button class="mode-btn" id="modeWaypoint" onclick="setMode('waypoint')">🎯 Autonomous Waypoint</button>
+                </div>
             </div>
+            
             <div class="arena-wrapper" id="arenaWrapper">
                 <canvas id="simCanvas"></canvas>
-                <div class="arena-helper">Drag the rectangular obstacle anywhere on the arena to test avoidance radar.</div>
+                <div class="arena-toolbar">
+                    <div class="map-selector">
+                        <span>Environment:</span>
+                        <select class="map-select" id="mapSelect" onchange="changeMap(this.value)">
+                            <option value="lab">Testing Ground (Movable Box)</option>
+                            <option value="corridor">Hospital Corridor & Columns</option>
+                            <option value="slalom">Slalom Obstacle Course</option>
+                        </select>
+                    </div>
+                    <div id="arenaHelpText">Tip: Drag obstacle boxes or click arena to place waypoint target.</div>
+                </div>
             </div>
         </div>
 
         <!-- Right: Telemetry & Controls Dashboard -->
         <div class="dashboard-col">
-            <!-- Brain Signal Activity Card -->
+            <!-- Cortical Activity -->
             <div class="card">
                 <div class="card-heading">
                     <span>EEG Cortical Signal</span>
-                    <span id="stateLabel" style="color: var(--color-primary); font-family: 'JetBrains Mono', monospace; font-size: 0.78rem;">STOPPED ('s')</span>
+                    <span id="stateLabel" style="color: var(--color-primary); font-family: 'JetBrains Mono', monospace; font-size: 0.76rem;">STOPPED ('s')</span>
                 </div>
                 <div class="eeg-container">
                     <canvas id="eegCanvas"></canvas>
@@ -537,11 +662,11 @@
                 </div>
             </div>
 
-            <!-- EEG Band Power Visualization (Inspired by megazron/eeg-operated-wheelchair PSD analysis) -->
+            <!-- EEG Band Power -->
             <div class="card">
                 <div class="card-heading">
                     <span>EEG Band Power (PSD)</span>
-                    <span id="dominantBand" style="color: var(--color-primary); font-family: 'JetBrains Mono', monospace; font-size: 0.75rem;">ALPHA dominant</span>
+                    <span id="dominantBand" style="color: var(--color-primary); font-family: 'JetBrains Mono', monospace; font-size: 0.74rem;">ALPHA dominant</span>
                 </div>
                 <div class="band-bars">
                     <div class="band-row">
@@ -570,7 +695,7 @@
             <!-- Direction & Speed Triggers -->
             <div class="card">
                 <div class="card-heading">
-                    <span>Navigation Commands</span>
+                    <span>Navigation Triggers</span>
                 </div>
 
                 <div class="nav-grid">
@@ -602,18 +727,22 @@
                     <div></div>
                 </div>
 
-                <!-- Speed Gear Selection -->
+                <!-- Speed Gear -->
                 <div class="gear-row">
                     <button class="gear-btn" id="gear1" onclick="setGear('1', 120)">Gear 1 (120)</button>
                     <button class="gear-btn active" id="gear2" onclick="setGear('2', 180)">Gear 2 (180)</button>
                     <button class="gear-btn" id="gear3" onclick="setGear('3', 255)">Gear 3 (255)</button>
                 </div>
 
-                <!-- Voice Assist Option -->
+                <!-- Voice Assist & Telemetry Export -->
                 <div class="voice-bar">
                     <button class="voice-btn" id="voiceBtn" onclick="toggleVoice()">
                         <svg viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
-                        <span id="voiceBtnText">Voice Command Fallback</span>
+                        <span id="voiceBtnText">Voice Assist</span>
+                    </button>
+                    <button class="export-btn" onclick="exportTelemetry()">
+                        <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                        <span>Export Log</span>
                     </button>
                 </div>
             </div>
@@ -625,20 +754,19 @@
                 </div>
                 <div class="log-container" id="logBox">
                     <div><span class="log-time">00:00:01</span> <span class="log-msg">System initialized.</span></div>
-                    <div><span class="log-time">00:00:02</span> <span class="log-msg">Listening on UDP port 6868.</span></div>
+                    <div><span class="log-time">00:00:02</span> <span class="log-msg">DSP Closed-loop ready.</span></div>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        // Preload wheelchair sprite image & remove white background
+        // Preload wheelchair sprite image
         const wheelchairImg = new Image();
         let wheelchairImgReady = false;
         const _rawWheelchair = new Image();
         _rawWheelchair.src = 'images/wheelchair_topdown.jpg';
         _rawWheelchair.onload = () => {
-            // Remove white background using offscreen canvas
             const offCanvas = document.createElement('canvas');
             offCanvas.width = _rawWheelchair.width;
             offCanvas.height = _rawWheelchair.height;
@@ -647,9 +775,8 @@
             const imgData = offCtx.getImageData(0, 0, offCanvas.width, offCanvas.height);
             const d = imgData.data;
             for (let i = 0; i < d.length; i += 4) {
-                // Make near-white pixels transparent
                 if (d[i] > 225 && d[i+1] > 225 && d[i+2] > 225) {
-                    d[i+3] = 0; // alpha = 0
+                    d[i+3] = 0;
                 }
             }
             offCtx.putImageData(imgData, 0, 0);
@@ -657,7 +784,7 @@
             wheelchairImg.onload = () => { wheelchairImgReady = true; };
         };
 
-        // Preload obstacle sprite image & remove white background
+        // Preload obstacle sprite image
         const obstacleImg = new Image();
         let obstacleImgReady = false;
         const _rawObstacle = new Image();
@@ -682,8 +809,9 @@
 
         // State Configuration
         const state = {
-            x: 240,
-            y: 260,
+            mode: 'manual', // 'manual', 'bci', 'waypoint'
+            x: 200,
+            y: 240,
             angle: 0,
             speed: 0,
             targetSpeed: 0,
@@ -691,9 +819,15 @@
             gear: '2',
             pwm: 180,
             servoAngle: 55,
-            obstacle: { x: 420, y: 260, w: 50, h: 50 },
+            obstacles: [
+                { x: 380, y: 240, w: 50, h: 50 }
+            ],
+            waypoint: null,
             frontDist: 200,
-            audioCtx: null
+            audioCtx: null,
+            serialPort: null,
+            serialWriter: null,
+            telemetryLog: []
         };
 
         const simCanvas = document.getElementById('simCanvas');
@@ -712,6 +846,10 @@
         window.addEventListener('resize', resizeCanvases);
         setTimeout(resizeCanvases, 100);
 
+        function toggleTheme() {
+            document.body.classList.toggle('theme-dark');
+        }
+
         function playBuzzer() {
             try {
                 if (!state.audioCtx) state.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -727,20 +865,104 @@
             } catch(e) {}
         }
 
-        function log(msg, isAlert=false) {
+        function log(msg, isAlert=false, isSerial=false) {
             const logBox = document.getElementById('logBox');
             const now = new Date().toTimeString().split(' ')[0];
             const div = document.createElement('div');
-            div.innerHTML = `<span class="log-time">${now}</span> <span class="${isAlert ? 'log-alert' : 'log-msg'}">${msg}</span>`;
+            let className = 'log-msg';
+            if (isAlert) className = 'log-alert';
+            if (isSerial) className = 'log-serial';
+            div.innerHTML = `<span class="log-time">${now}</span> <span class="${className}">${msg}</span>`;
             logBox.appendChild(div);
             logBox.scrollTop = logBox.scrollHeight;
+
+            // Save in telemetry log
+            state.telemetryLog.push({
+                time: now,
+                x: Math.round(state.x),
+                y: Math.round(state.y),
+                cmd: state.currentCmd,
+                pwm: state.pwm,
+                frontDist: state.frontDist,
+                msg: msg
+            });
+        }
+
+        // Web Serial API (Direct USB Arduino Control)
+        async function connectWebSerial() {
+            if (!("serial" in navigator)) {
+                alert("Web Serial is supported in Google Chrome, Edge, and Opera.\nFor Firefox/Safari, use the Python serial communication bridge.");
+                return;
+            }
+            try {
+                if (state.serialPort) {
+                    await state.serialWriter.close();
+                    await state.serialPort.close();
+                    state.serialPort = null;
+                    state.serialWriter = null;
+                    document.getElementById('btnConnectSerial').classList.remove('connected');
+                    document.getElementById('serialStatusText').innerText = 'Connect USB Arduino';
+                    log("USB Serial disconnected.");
+                    return;
+                }
+
+                state.serialPort = await navigator.serial.requestPort();
+                await state.serialPort.open({ baudRate: 9600 });
+                const encoder = new TextEncoderStream();
+                const outputDone = encoder.readable.pipeTo(state.serialPort.writable);
+                state.serialWriter = encoder.writable.getWriter();
+
+                document.getElementById('btnConnectSerial').classList.add('connected');
+                document.getElementById('serialStatusText').innerText = 'Arduino USB Connected';
+                log("⚡ USB Arduino connected directly via Web Serial (9600 baud)!", false, true);
+            } catch (err) {
+                log(`Serial Error: ${err.message}`, true);
+            }
+        }
+
+        async function sendSerialCommand(cmd) {
+            if (state.serialWriter) {
+                try {
+                    await state.serialWriter.write(cmd);
+                    log(`[TX Serial] Sent '${cmd}' to Arduino.`, false, true);
+                } catch(e) {}
+            }
+        }
+
+        function setMode(newMode) {
+            state.mode = newMode;
+            document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+            if (newMode === 'manual') document.getElementById('modeManual').classList.add('active');
+            if (newMode === 'bci') document.getElementById('modeBCI').classList.add('active');
+            if (newMode === 'waypoint') document.getElementById('modeWaypoint').classList.add('active');
+            log(`Control Mode changed to: ${newMode.toUpperCase()}`);
+        }
+
+        function changeMap(mapName) {
+            if (mapName === 'lab') {
+                state.obstacles = [{ x: 380, y: 240, w: 50, h: 50 }];
+            } else if (mapName === 'corridor') {
+                state.obstacles = [
+                    { x: 260, y: 150, w: 40, h: 40 },
+                    { x: 440, y: 320, w: 40, h: 40 },
+                    { x: 350, y: 240, w: 40, h: 40 }
+                ];
+            } else if (mapName === 'slalom') {
+                state.obstacles = [
+                    { x: 250, y: 180, w: 35, h: 35 },
+                    { x: 370, y: 300, w: 35, h: 35 },
+                    { x: 490, y: 180, w: 35, h: 35 }
+                ];
+            }
+            log(`Arena environment loaded: ${mapName}`);
         }
 
         function triggerCmd(cmd) {
             state.currentCmd = cmd;
             const names = { f: "FORWARD ('f')", b: "BACKWARD ('b')", l: "TURN LEFT ('l')", r: "TURN RIGHT ('r')", s: "STOP ('s')" };
             document.getElementById('stateLabel').innerText = names[cmd] || cmd;
-            log(`Command received: '${cmd}' (${names[cmd] || ''})`);
+            log(`Command: '${cmd}' (${names[cmd] || ''})`);
+            sendSerialCommand(cmd);
 
             document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
             const btnMap = { f: 'btnF', b: 'btnB', l: 'btnL', r: 'btnR', s: 'btnS' };
@@ -774,25 +996,40 @@
             document.getElementById(`gear${gearNum}`).classList.add('active');
             document.getElementById('pwmVal').innerText = `${pwmVal} PWM`;
             log(`Speed Gear changed to ${gearNum} (${pwmVal} PWM)`);
+            sendSerialCommand(gearNum);
             if (state.currentCmd === 'f') state.targetSpeed = (state.pwm / 255) * 3.0;
         }
 
-        // Draggable Obstacle
-        let isDragging = false;
+        // Draggable Obstacle & Click to set Waypoint
+        let draggedObs = null;
         simCanvas.addEventListener('mousedown', (e) => {
             const rect = simCanvas.getBoundingClientRect();
-            state.obstacle.x = e.clientX - rect.left;
-            state.obstacle.y = e.clientY - rect.top;
-            isDragging = true;
-        });
-        simCanvas.addEventListener('mousemove', (e) => {
-            if (isDragging) {
-                const rect = simCanvas.getBoundingClientRect();
-                state.obstacle.x = e.clientX - rect.left;
-                state.obstacle.y = e.clientY - rect.top;
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+
+            // Check if clicking near obstacle
+            for (let obs of state.obstacles) {
+                if (Math.hypot(obs.x - mouseX, obs.y - mouseY) < 35) {
+                    draggedObs = obs;
+                    return;
+                }
+            }
+
+            // In Waypoint mode, click sets navigation target
+            if (state.mode === 'waypoint') {
+                state.waypoint = { x: mouseX, y: mouseY };
+                log(`🎯 New Waypoint set at (${Math.round(mouseX)}, ${Math.round(mouseY)})`);
             }
         });
-        window.addEventListener('mouseup', () => isDragging = false);
+
+        simCanvas.addEventListener('mousemove', (e) => {
+            if (draggedObs) {
+                const rect = simCanvas.getBoundingClientRect();
+                draggedObs.x = e.clientX - rect.left;
+                draggedObs.y = e.clientY - rect.top;
+            }
+        });
+        window.addEventListener('mouseup', () => draggedObs = null);
 
         // Keyboard Controls
         window.addEventListener('keydown', (e) => {
@@ -834,29 +1071,44 @@
                 recognition.start();
                 isListening = true;
                 document.getElementById('voiceBtn').classList.add('listening');
-                document.getElementById('voiceBtnText').innerText = "Listening for voice...";
+                document.getElementById('voiceBtnText').innerText = "Listening...";
             } else {
                 recognition.stop();
                 isListening = false;
                 document.getElementById('voiceBtn').classList.remove('listening');
-                document.getElementById('voiceBtnText').innerText = "Voice Command Fallback";
+                document.getElementById('voiceBtnText').innerText = "Voice Assist";
             }
         }
 
-        // Distance Ranging
-        function getDistance() {
-            const dx = state.obstacle.x - state.x;
-            const dy = state.obstacle.y - state.y;
-            const dist = Math.hypot(dx, dy) - 25;
-            const angleToObs = Math.atan2(dy, dx);
-            let diffAngle = Math.abs(angleToObs - state.angle);
-            while (diffAngle > Math.PI) diffAngle -= Math.PI * 2;
-            diffAngle = Math.abs(diffAngle);
+        function exportTelemetry() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state.telemetryLog, null, 2));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", `neurowheel_telemetry_${Date.now()}.json`);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+            log("[EXPORT] Telemetry log exported successfully.");
+        }
 
-            if (diffAngle < 0.65) {
-                return Math.max(5, Math.round(dist * 0.65));
+        // Distance Ranging against all obstacles
+        function getDistance() {
+            let minDist = 250;
+            for (let obs of state.obstacles) {
+                const dx = obs.x - state.x;
+                const dy = obs.y - state.y;
+                const dist = Math.hypot(dx, dy) - 25;
+                const angleToObs = Math.atan2(dy, dx);
+                let diffAngle = Math.abs(angleToObs - state.angle);
+                while (diffAngle > Math.PI) diffAngle -= Math.PI * 2;
+                diffAngle = Math.abs(diffAngle);
+
+                if (diffAngle < 0.65) {
+                    const reading = Math.max(5, Math.round(dist * 0.65));
+                    if (reading < minDist) minDist = reading;
+                }
             }
-            return 250;
+            return minDist;
         }
 
         // Physics & Rendering Loop
@@ -867,6 +1119,28 @@
             document.getElementById('servoAngleVal').innerText = `${state.servoAngle}°`;
 
             const safetyEl = document.getElementById('safetyVal');
+
+            // Autonomous Waypoint Navigation Logic
+            if (state.mode === 'waypoint' && state.waypoint) {
+                const dx = state.waypoint.x - state.x;
+                const dy = state.waypoint.y - state.y;
+                const distToTarget = Math.hypot(dx, dy);
+
+                if (distToTarget < 20) {
+                    triggerCmd('s');
+                    state.waypoint = null;
+                    log("🎯 Destination waypoint reached!", false);
+                } else {
+                    const desiredAngle = Math.atan2(dy, dx);
+                    let angleDiff = desiredAngle - state.angle;
+                    while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
+                    while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
+
+                    state.angle += angleDiff * 0.05;
+                    state.targetSpeed = 1.8;
+                    state.servoAngle = Math.round(55 + (angleDiff * 25));
+                }
+            }
 
             if (state.frontDist < 30) {
                 safetyEl.innerText = "OBSTACLE DETECTED";
@@ -903,7 +1177,8 @@
             simCtx.clearRect(0, 0, w, h);
 
             // Clean Grid Lines
-            simCtx.strokeStyle = '#f1f5f9';
+            const isDark = document.body.classList.contains('theme-dark');
+            simCtx.strokeStyle = isDark ? '#1f2937' : '#f1f5f9';
             simCtx.lineWidth = 1;
             for (let x = 0; x < w; x += 32) {
                 simCtx.beginPath(); simCtx.moveTo(x, 0); simCtx.lineTo(x, h); simCtx.stroke();
@@ -912,22 +1187,50 @@
                 simCtx.beginPath(); simCtx.moveTo(0, y); simCtx.lineTo(w, y); simCtx.stroke();
             }
 
-            // Draw Obstacle (Realistic Sprite)
-            simCtx.save();
-            if (obstacleImgReady) {
-                const obsSize = 55;
-                simCtx.drawImage(obstacleImg, state.obstacle.x - obsSize / 2, state.obstacle.y - obsSize / 2, obsSize, obsSize);
-            } else {
-                // Fallback: simple rectangle if image not loaded
-                simCtx.fillStyle = '#fee2e2';
-                simCtx.strokeStyle = '#ef4444';
+            // Draw Waypoint Target if active
+            if (state.waypoint) {
+                simCtx.save();
+                simCtx.strokeStyle = '#22c55e';
+                simCtx.fillStyle = 'rgba(34, 197, 94, 0.2)';
                 simCtx.lineWidth = 2;
                 simCtx.beginPath();
-                simCtx.roundRect(state.obstacle.x - 25, state.obstacle.y - 25, 50, 50, 6);
+                simCtx.arc(state.waypoint.x, state.waypoint.y, 14, 0, Math.PI * 2);
                 simCtx.fill();
                 simCtx.stroke();
+
+                // Target center flag
+                simCtx.fillStyle = '#22c55e';
+                simCtx.beginPath();
+                simCtx.arc(state.waypoint.x, state.waypoint.y, 4, 0, Math.PI * 2);
+                simCtx.fill();
+
+                // Dotted line from wheelchair to target
+                simCtx.setLineDash([4, 4]);
+                simCtx.strokeStyle = 'rgba(34, 197, 94, 0.5)';
+                simCtx.beginPath();
+                simCtx.moveTo(state.x, state.y);
+                simCtx.lineTo(state.waypoint.x, state.waypoint.y);
+                simCtx.stroke();
+                simCtx.restore();
             }
-            simCtx.restore();
+
+            // Draw Obstacles
+            for (let obs of state.obstacles) {
+                simCtx.save();
+                if (obstacleImgReady) {
+                    const obsSize = obs.w || 50;
+                    simCtx.drawImage(obstacleImg, obs.x - obsSize / 2, obs.y - obsSize / 2, obsSize, obsSize);
+                } else {
+                    simCtx.fillStyle = '#fee2e2';
+                    simCtx.strokeStyle = '#ef4444';
+                    simCtx.lineWidth = 2;
+                    simCtx.beginPath();
+                    simCtx.roundRect(obs.x - 25, obs.y - 25, 50, 50, 6);
+                    simCtx.fill();
+                    simCtx.stroke();
+                }
+                simCtx.restore();
+            }
 
             // Draw Ultrasonic Radar Cone
             simCtx.save();
@@ -956,18 +1259,14 @@
             simCtx.lineTo(radarLen, 0);
             simCtx.stroke();
 
-            // Wheelchair Sprite (Realistic Image)
+            // Wheelchair Sprite
             simCtx.setLineDash([]);
             if (wheelchairImgReady) {
-                // Source image faces upward (negative Y), canvas angle=0 faces right (+X)
-                // Rotate sprite -π/2 so its "forward" aligns with canvas heading
                 simCtx.rotate(-Math.PI / 2);
                 const spriteSize = 70;
                 simCtx.drawImage(wheelchairImg, -spriteSize / 2, -spriteSize / 2, spriteSize, spriteSize);
-                // Undo the extra rotation for the heading arrow
                 simCtx.rotate(Math.PI / 2);
             } else {
-                // Fallback: simple rectangle if image not loaded
                 simCtx.fillStyle = '#0f172a';
                 simCtx.strokeStyle = '#334155';
                 simCtx.lineWidth = 1.5;
@@ -999,7 +1298,6 @@
             const amplitude = isFocus ? 16 : 5;
             const freq = isFocus ? 0.04 : 0.015;
 
-            // Baseline
             eegCtx.strokeStyle = '#e2e8f0';
             eegCtx.lineWidth = 1;
             eegCtx.beginPath();
@@ -1007,7 +1305,6 @@
             eegCtx.lineTo(w, h / 2);
             eegCtx.stroke();
 
-            // Wave
             eegCtx.strokeStyle = isFocus ? '#2563eb' : '#94a3b8';
             eegCtx.lineWidth = 1.8;
             eegCtx.beginPath();
@@ -1019,72 +1316,58 @@
             eegCtx.stroke();
         }
 
-        // EEG Band Power Simulation (inspired by megazron PSD analysis)
-        let bandFrame = 0;
+        // EEG Band Power Simulation
         function updateBandPowers() {
-            bandFrame++;
-            const isFocus = state.currentCmd !== 's';
             const isForward = state.currentCmd === 'f';
             const isTurn = state.currentCmd === 'l' || state.currentCmd === 'r';
 
-            // Simulate realistic band power based on wheelchair state
             let delta, theta, alpha, beta;
             const noise = () => (Math.random() - 0.5) * 6;
 
             if (isForward) {
-                // Focused forward → high beta, low alpha
                 delta = 10 + noise();
                 theta = 10 + noise();
                 alpha = 18 + noise();
                 beta  = 55 + noise();
             } else if (isTurn) {
-                // Turning → moderate beta, moderate alpha
                 delta = 12 + noise();
                 theta = 15 + noise();
                 alpha = 28 + noise();
                 beta  = 38 + noise();
             } else if (state.currentCmd === 'b') {
-                // Backward → elevated theta + beta mix
                 delta = 12 + noise();
                 theta = 25 + noise();
                 alpha = 22 + noise();
                 beta  = 35 + noise();
             } else {
-                // Stopped / relaxed → high alpha, low beta
                 delta = 15 + noise();
                 theta = 12 + noise();
                 alpha = 52 + noise();
                 beta  = 14 + noise();
             }
 
-            // Normalize to 100%
             const total = delta + theta + alpha + beta;
             delta = Math.max(2, Math.round(delta / total * 100));
             theta = Math.max(2, Math.round(theta / total * 100));
             alpha = Math.max(2, Math.round(alpha / total * 100));
             beta  = Math.max(2, Math.round(beta / total * 100));
 
-            // Update bar widths
             document.getElementById('barDelta').style.width = delta + '%';
             document.getElementById('barTheta').style.width = theta + '%';
             document.getElementById('barAlpha').style.width = alpha + '%';
             document.getElementById('barBeta').style.width = beta + '%';
 
-            // Update percentage text
             document.getElementById('pctDelta').innerText = delta + '%';
             document.getElementById('pctTheta').innerText = theta + '%';
             document.getElementById('pctAlpha').innerText = alpha + '%';
             document.getElementById('pctBeta').innerText = beta + '%';
 
-            // Find dominant band
             const bands = { DELTA: delta, THETA: theta, ALPHA: alpha, BETA: beta };
             const dominant = Object.entries(bands).sort((a, b) => b[1] - a[1])[0][0];
             document.getElementById('dominantBand').innerText = dominant + ' dominant';
         }
 
-        // Run band power update at ~2 Hz (every 500ms)
         setInterval(updateBandPowers, 500);
-
         requestAnimationFrame(loop);
     </script>
 </body>

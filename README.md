@@ -1,17 +1,28 @@
 # 🧠 Brain Signal Controlled Wheelchair (NeuroWheel)
 
-An end-to-end **Brain-Computer Interface (BCI)** assistive mobility system. The project acquires neuro-signals (EEG), processes and classifies brain wave frequency bands in real-time, and navigates a motorized wheelchair with obstacle detection and safety fail-safes.
+[![CI & GitHub Pages](https://github.com/techindro/Wheelchair-controlled-by-Brain-signals-/actions/workflows/deploy.yml/badge.svg)](https://github.com/techindro/Wheelchair-controlled-by-Brain-signals-/actions/workflows/deploy.yml)
+[![Live Simulator Demo](https://img.shields.io/badge/Live%20Demo-Web%20Simulator-brightgreen?logo=googlechrome&logoColor=white)](https://techindro.github.io/Wheelchair-controlled-by-Brain-signals-/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Python 3.8+](https://img.shields.io/badge/Python-3.8%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![Arduino](https://img.shields.io/badge/Hardware-Arduino%20Mega%20%2F%20Uno-00979D?logo=arduino&logoColor=white)](https://www.arduino.cc/)
+
+An end-to-end **Brain-Computer Interface (BCI)** assistive mobility system. The project acquires neuro-signals (EEG), processes and classifies brain wave frequency bands in real-time using Digital Signal Processing (DSP) & Machine Learning (ML), and navigates a motorized wheelchair with ultrasonic collision avoidance and emergency safety fail-safes.
 
 ---
 
 ## 📌 Features & Highlights
 
 - **🧠 Multi-Source EEG Signal Acquisition:** Support for Emotiv EPOC/EPOC+ headsets as well as high-speed raw ADC acquisition via Backyard Brains SpikerShield (`SpikeRecorder.ino`).
-- **📊 Real-Time Signal Processing & Filtering:** 50 Hz IIR Notch filter (mains noise removal) and 0.5–30 Hz Butterworth Bandpass filter with Power Spectral Density (PSD) analysis (`eeg_signal_processor.py`).
-- **⚡ Brainwave Band Power Classification:** Real-time extraction of **Delta (0.5–4Hz)**, **Theta (4–7Hz)**, **Alpha (8–13Hz)**, and **Beta (14–30Hz)** ratios for mental focus/intent navigation.
+- **📊 Real-Time DSP Signal Processing:** 50 Hz IIR Notch filter (mains noise removal) and 0.5–30 Hz Butterworth Bandpass filter with Power Spectral Density (PSD) analysis (`eeg_signal_processor.py`).
+- **🤖 BCI Intent Machine Learning Classifier:** Supervised ML classifier (Random Forest & SVM) with Common Spatial Pattern (CSP) / Band Power feature extraction for motor imagery decoding (`bci_ml_classifier.py`).
+- **⚡ Brainwave Band Power Extraction:** Real-time extraction of **Delta (0.5–4Hz)**, **Theta (4–7Hz)**, **Alpha (8–13Hz)**, and **Beta (14–30Hz)** ratios for mental focus/intent navigation.
 - **🛡️ Autonomous Collision Avoidance:** Dual ultrasonic sensors measure clearance and trigger automatic course correction and acoustic buzzer alarms if obstacles are closer than 30 cm.
-- **🏎️ Multi-Speed Control & Steering:** 3-speed PWM gear levels (120, 180, 255 PWM) paired with metal-gear servo steering (10° to 110°).
-- **🌐 Interactive Web Simulator:** Rich browser-based simulator (`index.html`) featuring realistic top-down wheelchair physics, draggable traffic cone obstacles, live EEG waveform and PSD band power telemetry, and voice fallback commands.
+- **🚨 Assistive Emergency SOS & GPS Telemetry:** Automatic emergency alert dispatcher for collisions, signal dropouts, and panic triggers with simulated GPS telemetry dispatch (`emergency_sos.py`).
+- **🌐 Interactive Web Dashboard & Simulator:** Complete browser-based simulator (`index.html`) featuring:
+  - **Direct Web Serial API Link:** Control physical Arduino over USB directly from Google Chrome/Edge!
+  - **Autonomous Waypoint Navigation:** Click anywhere on the arena to deploy a target beacon; the wheelchair plans collision-free paths.
+  - **Multi-Environment Maps:** Testing Ground, Hospital Corridors, and Slalom Obstacle Track.
+  - **Dark / Light Theme Switcher & Telemetry JSON Exporter.**
 
 ![System Diagram](images/bci.png)
 
@@ -43,9 +54,10 @@ An end-to-end **Brain-Computer Interface (BCI)** assistive mobility system. The 
 ## 🛠️ Tech Stack & Protocols
 
 - **Firmware & Embedded:** C/C++ (Arduino IDE, AVR Timer Interrupts)
-- **Signal Processing & ML Bridge:** Python 3 (`numpy`, `scipy`, `pyserial`, `SpeechRecognition`)
-- **Web Simulation:** HTML5, Canvas 2D API, Vanilla CSS, Web Audio API, Web Speech API
+- **Signal Processing & Machine Learning:** Python 3 (`numpy`, `scipy`, `scikit-learn`, `pyserial`, `SpeechRecognition`)
+- **Web Simulation & Hardware Bridge:** HTML5, Web Serial API, Canvas 2D API, Web Audio API, Web Speech API
 - **Communication Protocols:** 
+  - Web Serial (Browser-to-Arduino USB)
   - UDP Sockets (`127.0.0.1:6868`)
   - Serial UART (9600 / 230400 Baud)
   - Bluetooth SPP (HC-05)
@@ -58,12 +70,13 @@ An end-to-end **Brain-Computer Interface (BCI)** assistive mobility system. The 
 [ Real Emotiv EEG / SpikerShield ]
                │
                ▼  (Raw Signals / UDP Stream)
-[ Python Signal Processor & Bridge ]
+[ Python Signal Processor & ML Classifier ]
    ├── 50 Hz Notch + 0.5–30 Hz Bandpass Filtering
    ├── PSD Feature Extraction (Delta / Theta / Alpha / Beta)
-   └── Mental State to Command Classifier
+   ├── Random Forest / SVM Intent Classifier
+   └── Emergency SOS & Safety Dispatcher
                │
-               ▼  (HC-05 Bluetooth / Serial 9600 Baud)
+               ▼  (Web Serial / HC-05 Bluetooth / Serial 9600 Baud)
 [ Physical Arduino Controller ] ──> [ L298N Driver + 12V DC Motors + Servo ]
                ▲
                │  (Echo Ranging Signals & Collision Avoidance)
@@ -108,39 +121,50 @@ An end-to-end **Brain-Computer Interface (BCI)** assistive mobility system. The 
 2. **Flash Arduino Controller:**
    - Open `arduino_codes/last_one.ino` in Arduino IDE, select your COM port, and upload.
    - *(Optional for Raw ADC)*: Open `arduino_codes/SpikeRecorder/SpikeRecorder.ino` for 10 kHz raw signal streaming.
-3. **Start Python Signal Processor:**
+3. **Install Dependencies:**
    ```bash
-   # Run signal filtering & classification:
+   pip install -r requirements.txt
+   ```
+4. **Start Python Signal Processor & ML Classifier:**
+   ```bash
+   # Run ML intent classification pipeline:
+   python socket_communication_codes/bci_ml_classifier.py
+
+   # Run DSP signal filtering & classification:
    python "socket_communication_codes/eeg_signal_processor.py" --eeg COM3 --motor COM5
 
    # Or run standard serial/UDP bridge:
    python "socket_communication_codes/serial communication.py"
    ```
-4. Put on the EEG headset and begin navigation.
 
 ---
 
-### Option B: Running the Web Simulator
+### Option B: Running the Web Simulator & Direct Web Serial Control
 
-Test the entire system in your browser with interactive 2D physics, real-time EEG waves, and band power metrics:
+Test the entire system in your browser with interactive 2D physics, autonomous waypoint navigation, and live EEG waveforms:
 
 ```bash
 # Start local web server
 python -m http.server 8080
 ```
 
-Open **`http://localhost:8080`** in your browser:
+Open **`http://localhost:8080`** (or access online via [GitHub Pages](https://techindro.github.io/Wheelchair-controlled-by-Brain-signals-/)):
+- **Direct USB Hardware Connection:** Click **"Connect USB Arduino"** to send commands directly to your physical wheelchair over Web Serial API.
+- **Autonomous Navigation:** Switch mode to **"🎯 Autonomous Waypoint"** and click anywhere on the arena to set navigation targets.
 - **Controls:** `W` / `A` / `S` / `D` or **Arrow Keys**
 - **Emergency Brake:** `Spacebar`
 - **Gears:** Keys `1`, `2`, `3`
-- **Obstacle Radar:** Drag the traffic cone obstacle anywhere on the arena to test collision radar and automatic steering avoidance.
+- **Obstacle Radar:** Drag obstacle boxes anywhere to test collision avoidance radar.
+- **Telemetry Export:** Click **"Export Log"** to download JSON telemetry session records.
 
 ---
 
 ## 📂 Repository Structure
 
 ```
-Wheelchair-controlled-by-Brain-Signal/
+Wheelchair-controlled-by-Brain-signals-/
+├── .github/workflows/
+│   └── deploy.yml                         # CI pipeline & GitHub Pages auto-deploy
 ├── arduino_codes/
 │   ├── last_one.ino                       # Main Arduino controller (motors + servo + ultrasonic)
 │   ├── SpikeRecorder/
@@ -148,7 +172,9 @@ Wheelchair-controlled-by-Brain-Signal/
 │   ├── _2_ultrasonic/                     # Ultrasonic test routines
 │   └── _2ultrasonis_servo_DC-v2/          # Motor & servo calibration sketches
 ├── socket_communication_codes/
+│   ├── bci_ml_classifier.py               # Supervised ML motor imagery intent classifier
 │   ├── eeg_signal_processor.py            # Notch/Bandpass filtering & PSD classification
+│   ├── emergency_sos.py                   # Safety monitoring & GPS emergency SOS dispatcher
 │   └── serial communication.py            # Serial-to-UDP socket bridge with voice listener
 ├── images/
 │   ├── bci.png                            # BCI system flowchart
@@ -161,7 +187,8 @@ Wheelchair-controlled-by-Brain-Signal/
 │   ├── forward_backward.gif               # Drive test demo
 │   ├── right_left.gif                     # Steering test demo
 │   └── avoid.gif                          # Collision avoidance demo
-├── index.html                             # NeuroWheel interactive Web Simulator
+├── index.html                             # NeuroWheel interactive Web Simulator & Dashboard
+├── requirements.txt                       # Python dependencies list
 ├── CIRCUIT_AND_HARDWARE_GUIDE.md          # Pinout & connection documentation
 ├── CONTRIBUTING.md                        # Contribution guidelines
 ├── LICENSE                                # MIT License
@@ -175,6 +202,7 @@ Wheelchair-controlled-by-Brain-Signal/
 - **Watchdog Auto-Brake (2000 ms):** Automatically stops motors if Bluetooth/Serial telemetry drops while in motion.
 - **Acoustic Warning Alarm:** 5V active buzzer sounds continuously when front obstacles are within 30 cm.
 - **Autonomous Evasion:** Arduino automatically overrides steering to navigate around detected barriers.
+- **Emergency SOS Dispatcher:** Real-time collision impact and signal loss detection with automated GPS telemetry broadcasting.
 
 ---
 
@@ -182,6 +210,7 @@ Wheelchair-controlled-by-Brain-Signal/
 
 **Shubham Patel**  
 B.Tech Computer Science & Engineering  
+GitHub: [@techindro](https://github.com/techindro)
 
 ---
 
