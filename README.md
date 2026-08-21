@@ -1,11 +1,5 @@
 # 🧠 Brain Signal Controlled Wheelchair (NeuroWheel)
 
-[![CI & GitHub Pages](https://github.com/techindro/Wheelchair-controlled-by-Brain-signals-/actions/workflows/deploy.yml/badge.svg)](https://github.com/techindro/Wheelchair-controlled-by-Brain-signals-/actions/workflows/deploy.yml)
-[![Live Simulator Demo](https://img.shields.io/badge/Live%20Demo-Web%20Simulator-brightgreen?logo=googlechrome&logoColor=white)](https://techindro.github.io/Wheelchair-controlled-by-Brain-signals-/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Python 3.8+](https://img.shields.io/badge/Python-3.8%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
-[![Arduino](https://img.shields.io/badge/Hardware-Arduino%20Mega%20%2F%20Uno-00979D?logo=arduino&logoColor=white)](https://www.arduino.cc/)
-
 An end-to-end **Brain-Computer Interface (BCI)** assistive mobility system. The project acquires neuro-signals (EEG), processes and classifies brain wave frequency bands in real-time using Digital Signal Processing (DSP) & Machine Learning (ML), and navigates a motorized wheelchair with ultrasonic collision avoidance and emergency safety fail-safes.
 
 ---
@@ -148,7 +142,7 @@ Test the entire system in your browser with interactive 2D physics, autonomous w
 python -m http.server 8080
 ```
 
-Open **`http://localhost:8080`** (or access online via [GitHub Pages](https://techindro.github.io/Wheelchair-controlled-by-Brain-signals-/)):
+Open **`http://localhost:8080`** in your browser:
 - **Direct USB Hardware Connection:** Click **"Connect USB Arduino"** to send commands directly to your physical wheelchair over Web Serial API.
 - **Autonomous Navigation:** Switch mode to **"🎯 Autonomous Waypoint"** and click anywhere on the arena to set navigation targets.
 - **Controls:** `W` / `A` / `S` / `D` or **Arrow Keys**
