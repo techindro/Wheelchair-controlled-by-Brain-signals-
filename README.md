@@ -1,3 +1,4 @@
+
 # 🧠 Brain Signal Controlled Wheelchair (NeuroWheel)
 
 An end-to-end **Brain-Computer Interface (BCI)** assistive mobility system. The project acquires neuro-signals (EEG), processes and classifies brain wave frequency bands in real-time using Digital Signal Processing (DSP) & Machine Learning (ML), and navigates a motorized wheelchair with ultrasonic collision avoidance and emergency safety fail-safes.
