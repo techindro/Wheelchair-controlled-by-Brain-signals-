@@ -11,179 +11,163 @@
 
 **An end-to-end, real-time closed-loop Brain-Computer Interface (BCI) robotic wheelchair navigation platform with multi-modal DSP filtering, motor imagery classification, shared autonomy obstacle avoidance, and telemetry supervision.**
 
-[Features](#-key-features) • [Theoretical Foundation](#-mathematical--theoretical-foundation) • [System Architecture](#-system-architecture) • [Hardware Specifications](#-hardware--embedded-subsystem) • [Signal Pipeline](#-signal-processing--ml-pipeline) • [Benchmarking](#-benchmarking--latency-budget) • [Web Simulator](#-interactive-web-simulator) • [Getting Started](#-getting-started) • [Academic Citation](#-academic-citation)
+[Architecture](#-system-architecture) • [Signal Pipeline](#-signal-processing--ml-pipeline) • [Hardware Specifications](#-hardware--embedded-subsystem) • [Command Protocols](#-command-mapping--control-logic) • [Web Simulator](#-interactive-web-simulator) • [Getting Started](#-getting-started) • [Academic Citation](#-academic-citation)
 
 </div>
 
 ---
 
-## 📌 Executive Summary
+## 📌 Project Overview
 
-**NeuroWheel** is a cyber-physical assistive system engineered to restore autonomous indoor mobility for individuals with severe neuromuscular impairments (e.g., Amyotrophic Lateral Sclerosis, Tetraplegia, Spinal Cord Injury). 
+**NeuroWheel** is an end-to-end assistive mobility system designed to translate electroencephalographic (EEG) brain signals into navigation commands for a motorized robotic wheelchair. 
 
-The platform captures multi-channel electroencephalographic (**EEG**) signals, eliminates ocular and electrical line artifacts via digital IIR filters, extracts spectral power features across classical neurological frequency bands ($\delta, \theta, \alpha, \beta, \gamma$), decodes user intent through supervised machine learning and spatial filters, and translates classified states into kinematic navigation commands. An integrated **shared autonomy framework** arbitrates between decoded brain intent and real-time ultrasonic proximity fields to guarantee collision-free trajectory execution.
+The system implements a full closed-loop architecture:
+1. **Signal Acquisition:** Streams raw neural potential data via serial interfaces (Backyard Brains SpikerShield ADC / Emotiv EPOC).
+2. **Digital Signal Processing (DSP):** Real-time $50\text{ Hz}$ IIR notch filtering for mains hum removal and $0.5 - 30\text{ Hz}$ $4^{\text{th}}$-order zero-phase Butterworth bandpass filtering.
+3. **Feature Extraction:** Welch's Power Spectral Density (PSD) computation to derive absolute and relative band powers for **Delta ($\delta$)**, **Theta ($\theta$)**, **Alpha ($\alpha$)**, and **Beta ($\beta$)** bands alongside statistical moments.
+4. **Machine Learning Intent Decoding:** Supervised classification (Random Forest & Support Vector Machines) mapping mental state features to discrete motion intents (`REST`, `FORWARD`, `LEFT`, `RIGHT`, `BLINK_STOP`).
+5. **Microcontroller Actuation & Safety:** Arduino Mega/Uno firmware executing dual DC motor drive (L298N), active servo steering (MG995), ultrasonic collision avoidance (HC-SR04), and emergency watchdog fail-safes.
+6. **Web Dashboard & Hardware-in-the-Loop Twin:** Browser-based simulator with direct **Web Serial API** support to control the physical hardware directly from the browser.
 
 ![BCI System Architecture Flowchart](images/bci.png)
-
----
-
-## 🔬 Mathematical & Theoretical Foundation
-
-### 1. Digital Filtering & Artifact Rejection
-Raw electroencephalography suffers from low signal-to-noise ratio ($\text{SNR} < 0\text{ dB}$) contaminated by $50\text{ Hz} / 60\text{ Hz}$ power-line interference, electromyographic (EMG) muscle spikes, and electrooculographic (EOG) ocular blinks.
-
-- **Power-Line IIR Notch Filter:** A second-order notch filter centered at $f_0 = 50\text{ Hz}$ with quality factor $Q = 30$:
-  $$H_{\text{notch}}(z) = b_0 \frac{1 - 2\cos(\omega_0)z^{-1} + z^{-2}}{1 - 2r\cos(\omega_0)z^{-1} + r^2 z^{-2}}$$
-  where $\omega_0 = \frac{2\pi f_0}{f_s}$ and $r = 1 - \frac{\pi \cdot \text{BW}}{f_s}$.
-
-- **Neural Bandpass Filter:** A $4^{\text{th}}$-order zero-phase Butterworth bandpass filter passing $f_L = 0.5\text{ Hz}$ to $f_H = 30\text{ Hz}$:
-  $$|H(j\omega)|^2 = \frac{1}{1 + \left(\frac{\omega^2 - \omega_0^2}{\omega \cdot \text{BW}}\right)^{2n}}$$
-
-### 2. Spectral Feature Extraction (Welch's PSD)
-Continuous EEG epochs $x[n]$ of window length $L = 250$ samples ($1.0\text{ s}$ at $f_s = 250\text{ Hz}$) are partitioned into $50\%$ overlapping sub-segments windowed by a Hann taper $w[n]$:
-
-$$P_{xx}(f) = \frac{1}{K L U} \sum_{k=1}^K \left| \sum_{n=0}^{L-1} x_k[n] w[n] e^{-j 2\pi f n / f_s} \right|^2$$
-
-where normalization energy $U = \frac{1}{L} \sum_{n=0}^{L-1} |w[n]|^2$.
-
-#### Neural Frequency Band Decomposition
-The absolute band power $E_{\text{band}}$ and relative spectral ratio $R_{\text{band}}$ are computed across canonical neurological bands:
-
-$$E_{\text{band}} = \int_{f_{\text{low}}}^{f_{\text{high}}} P_{xx}(f) df, \quad R_{\text{band}} = \frac{E_{\text{band}}}{\sum_{\text{all bands}} E_i}$$
-
-```
-Delta (δ): 0.5 - 4.0 Hz  --> Deep sleep / unconscious states
-Theta (θ): 4.0 - 8.0 Hz  --> Drowsiness / deep relaxation
-Alpha (α): 8.0 - 13.0 Hz --> Idle / sensorimotor mu-rhythm attenuation (ERD/ERS)
-Beta  (β): 13.0 - 30.0 Hz --> Active concentration / motor planning execution
-Gamma (γ): 30.0 - 45.0 Hz --> High-level cognitive cross-modal binding
-```
-
-### 3. Spatial Filtering & Manifold Intent Classification
-- **Common Spatial Patterns (CSP):** Maximizes the variance ratio between two motor imagery classes:
-  $$J(W) = \frac{W^T \Sigma_1 W}{W^T \Sigma_2 W}$$
-- **Covariance on Riemannian Manifolds:** Multi-channel epochs are projected as Symmetric Positive Definite (SPD) covariance matrices $\mathbf{C} \in \mathcal{S}_{++}^N$ evaluated via affine-invariant Riemannian distance metric:
-  $$\delta_R(\mathbf{C}_1, \mathbf{C}_2) = \|\log(\mathbf{C}_1^{-1/2} \mathbf{C}_2 \mathbf{C}_1^{-1/2})\|_F$$
 
 ---
 
 ## 🏛️ System Architecture
 
 ```mermaid
-graph TD
-    subgraph Signal Acquisition
-        A[Emotiv EPOC+ / 14-Channel] -->|Wireless 2.4GHz| B[Raw EEG Buffer]
-        A2[SpikerShield ADC Shield] -->|10kHz Timer1 Stream| B
+flowchart TD
+    subgraph S1["1. Signal Acquisition Subsystem"]
+        A["EEG Sensor / Headset<br/>(SpikerShield 10kHz ADC / Emotiv)"] -->|Serial Stream / UDP| B["EEG Signal Buffer<br/>(256 Hz, 1.0s Window)"]
     end
 
-    subgraph Real-Time Signal Processing
-        B --> C[50Hz Notch Filter]
-        C --> D[0.5-30Hz Butterworth BPF]
-        D --> E[Welch PSD & Band Power Extractor]
-        E --> F[Feature Vector p ∈ R^d]
+    subgraph S2["2. Digital Signal Processing (DSP)"]
+        B --> C["50 Hz IIR Notch Filter<br/>(Q=30, Mains Hum Rejection)"]
+        C --> D["0.5 - 30 Hz Butterworth BPF<br/>(4th-Order Zero-Phase)"]
+        D --> E["Welch's PSD Feature Extraction<br/>(Delta, Theta, Alpha, Beta Ratios)"]
     end
 
-    subgraph Machine Learning Intent Decoder
-        F --> G[Random Forest / SVM / CSP Model]
-        G --> H{Decoded Intent State}
-        H -->|Class 0| I1[REST / IDLE]
-        H -->|Class 1| I2[FORWARD DRIVE]
-        H -->|Class 2| I3[STEER LEFT]
-        H -->|Class 3| I4[STEER RIGHT]
-        H -->|Class 4| I5[EMERGENCY STOP]
+    subgraph S3["3. Intent Classifier (Python)"]
+        E --> F["ML Intent Classifier<br/>(Random Forest / SVM)"]
+        F --> G{"Decoded State"}
+        G -->|Class 0| H0["REST / IDLE ('S')"]
+        G -->|Class 1| H1["FORWARD ('F')"]
+        G -->|Class 2| H2["STEER LEFT ('L')"]
+        G -->|Class 3| H3["STEER RIGHT ('R')"]
+        G -->|Class 4| H4["BLINK / STOP ('S')"]
     end
 
-    subgraph Shared Autonomy & Execution
-        I2 & I3 & I4 --> J[Arbitration & Kinematic Planner]
-        K[Dual Ultrasonic Radar HC-SR04] -->|Proximity Vector| J
-        J -->|Safe Control Vector| L[Arduino Mega/Uno Controller]
-        L --> M[L298N H-Bridge Driver]
-        L --> N[MG995 Steering Servo]
-        M --> O[12V Geared Drive Motors]
+    subgraph S4["4. Embedded Control & Shared Autonomy (Arduino)"]
+        H0 & H1 & H2 & H3 & H4 -->|UART Serial 9600 / WebSerial| I["Arduino Controller<br/>(last_one.ino)"]
+        J["2x HC-SR04 Ultrasonic Sensors"] -->|Proximity Echo Ranging| I
+        I --> K{"Obstacle < 30 cm?"}
+        K -->|Yes| L["Autonomous Brake & Buzzer Alarm"]
+        K -->|No| M["Execute Motor PWM & Servo Angle"]
+        M --> N["L298N Dual DC Motors (Drive)"]
+        M --> O["MG995 Metal Gear Servo (Steer)"]
     end
 
-    subgraph Safety & Telemetry
-        L -->|Real-time UART / SPP| P[Web Serial Dashboard & Telemetry]
-        H -->|Panic / Collision| Q[Emergency SOS GPS Dispatcher]
+    subgraph S5["5. Telemetry & Web Dashboard"]
+        I <-->|Web Serial API| P["Interactive Web Simulator (index.html)"]
+        F -->|Signal Drop / Collision| Q["Emergency SOS Dispatcher"]
     end
+```
+
+---
+
+## 🔬 Signal Processing & ML Pipeline
+
+### 1. Digital IIR Filtering (DSP)
+The signal processing pipeline (`eeg_signal_processor.py`) cleans raw incoming neural voltage sequences using:
+
+* **50 Hz Mains Notch Filter:** Removes AC power-line electromagnetic interference:
+  $$\text{Filter: } \text{IIR Notch at } f_0 = 50\text{ Hz}, \quad Q = 30.0$$
+* **0.5 – 30 Hz Bandpass Filter:** $4^{\text{th}}$-order zero-phase Butterworth filter isolating physiological brain rhythms while rejecting high-frequency EMG muscle noise and DC drift:
+  $$\text{Passband: } [0.5\text{ Hz}, 30.0\text{ Hz}], \quad N = 4\text{ (Butterworth)}$$
+
+### 2. Spectral Feature Extraction
+Features are extracted over sliding epochs ($N = 256$ samples at $f_s = 256\text{ Hz}$, $50\%$ overlap) using Welch's method ($P_{xx}(f)$):
+
+$$\text{Band Power } E_{\text{band}} = \int_{f_{\text{low}}}^{f_{\text{high}}} P_{xx}(f) df, \quad \text{Relative Power } R_{\text{band}} = \frac{E_{\text{band}}}{\sum E_{\text{all}}}$$
+
+| Band | Frequency Range | Physiological Correlate | Role in Control Logic |
+|:---|:---|:---|:---|
+| **Delta ($\delta$)** | $0.5 - 4.0\text{ Hz}$ | Deep rest / low arousal | Baseline energy normalization |
+| **Theta ($\theta$)** | $4.0 - 7.0\text{ Hz}$ | Drowsiness / deep relaxation | High theta triggers drowsiness auto-stop |
+| **Alpha ($\alpha$)** | $8.0 - 13.0\text{ Hz}$ | Relaxed wakefulness / closed eyes | Alpha dominance ($>60\%$) triggers `STOP` |
+| **Beta ($\beta$)** | $14.0 - 30.0\text{ Hz}$ | Active focus / motor engagement | High $\beta/\alpha$ ratio ($>1.5$) triggers `FORWARD` |
+
+Time-domain statistical features (Mean, Standard Deviation, Variance, RMS, Kurtosis, Skewness) are concatenated to form the complete feature vector $\mathbf{x} \in \mathbb{R}^{14}$.
+
+### 3. Machine Learning Classification
+`bci_ml_classifier.py` trains and benchmarks a **Random Forest Classifier** ($100$ estimators, maximum depth $10$) and **Support Vector Machine (SVM)** with standard feature scaling across 5 discrete intention states:
+
+```
+Class 0: REST         --> Relaxed state (Alpha dominance, standard speed gear)
+Class 1: FORWARD      --> Motor intention / focus (Mu rhythm suppression, elevated Beta)
+Class 2: LEFT         --> Left steer imagery (Asymmetric hemispheric activation)
+Class 3: RIGHT        --> Right steer imagery (Elevated contralateral rhythm)
+Class 4: BLINK_STOP   --> High-amplitude ocular artifact spike (Emergency halt)
 ```
 
 ---
 
 ## 🔬 Hardware & Embedded Subsystem
 
-| Component | Hardware Specification | Function & Interface |
+| Subsystem | Real Physical Device / Model | Technical Function & Interface |
 |:---|:---|:---|
-| **EEG Headset** | **Emotiv EPOC / EPOC+** | 14 active gold-plated channels (10-20 system: AF3, F7, F3, FC5, T7, P7, O1, O2, P8, T8, FC6, F4, F8, AF4) |
-| **ADC Shield** | **Backyard Brains SpikerShield** | High-speed 10 kHz ADC sampling driven by AVR Timer1 interrupts (`SpikeRecorder.ino`) |
-| **Microcontroller** | **ATmega2560 / ATmega328P** | Real-time embedded control, PWM generation, and hardware watchdog fail-safes |
-| **Motor Actuation** | **L298N Dual Full-Bridge** | Dual DC H-Bridge controller (up to 2A per channel) with 8-bit PWM speed regulation |
-| **Steering Servo** | **MG995 / MG996R Metal Gear** | High-torque servomotor governing front steering knuckle ($10^\circ$ to $110^\circ$, neutral $55^\circ$) |
-| **Proximity Sensors** | **2x HC-SR04 Ultrasonic** | 40 kHz acoustic ranging transducers ($2\text{ cm} - 400\text{ cm}$) for front/flank clearance |
-| **Telemetry Link** | **HC-05 Bluetooth SPP / USB** | Wireless UART link operating at 9600 / 230400 Baud |
-| **Power Bus** | **12V Li-ion Battery Bank** | Independent motor power rail isolated from digital $5\text{V}$ logic supply |
+| **EEG Acquisition** | **Backyard Brains SpikerShield / Emotiv** | High-speed ADC signal acquisition / wireless electrode telemetry |
+| **Microcontroller** | **Arduino Mega 2560 / Arduino Uno** | ATmega AVR microcontroller executing motor PWM, servo PWM, and sensor polling |
+| **Motor Driver** | **L298N Dual H-Bridge Module** | Controls two 12V DC geared motors with 8-bit PWM speed control (Pins 5, 6, 9, 10) |
+| **Steering Actuator** | **MG995 / MG996R Metal Gear Servo** | Direct front steering knuckle control ($10^\circ$ to $110^\circ$, Pin 3) |
+| **Ranging Sensors** | **2x HC-SR04 Ultrasonic Sensors** | Dual ultrasonic echo ranging transducers measuring front distance (Pins 2, 4, 11, 12) |
+| **Warning Alarm** | **5V Active Buzzer** | Audio collision alert buzzer (Digital Pin 8) |
+| **Wireless Telemetry** | **HC-05 Bluetooth Module / USB UART** | Serial UART link operating at 9600 Baud for remote telemetry |
+| **Power Supply** | **12V Li-ion Battery Bank** | Independent motor power supply isolated from 5V Arduino digital rail |
 
 <div align="center">
-  <img src="images/emotiv.png" width="370" alt="Emotiv EEG Headset" />
+  <img src="images/emotiv.png" width="360" alt="Emotiv EEG Headset" />
   &nbsp;&nbsp;&nbsp;&nbsp;
-  <img src="images/3d_model.jpg" width="370" alt="Wheelchair 3D CAD Assembly" />
+  <img src="images/3d_model.jpg" width="360" alt="Wheelchair 3D CAD Assembly" />
 </div>
 
 ---
 
-## ⚡ Shared Autonomy Control Protocol
+## 🕹️ Command Mapping & Control Logic
 
-To ensure absolute user safety, **NeuroWheel** does not execute raw brain intent blindly. The controller implements **Cooperative Shared Autonomy**:
+| Serial Command | Navigation Action | Steering Servo Angle | Motor State & Description |
+|:---:|:---|:---:|:---|
+| `'f'` | Forward Drive | $55^\circ$ (Center) | Dual DC motors drive forward at active PWM gear |
+| `'b'` | Reverse Drive | $55^\circ$ (Center) | Dual DC motors drive in reverse at active PWM gear |
+| `'l'` | Steer Left | $110^\circ$ (Full Left) | Steers front wheels left while driving forward |
+| `'r'` | Steer Right | $10^\circ$ (Full Right) | Steers front wheels right while driving forward |
+| `'s'` | Full Stop / Brake | $55^\circ$ (Center) | Halts motor outputs immediately ($PWM = 0$) |
+| `'1'` | Speed Gear 1 | — | Low speed / indoor safe mode ($PWM = 120$) |
+| `'2'` | Speed Gear 2 | — | Standard operational speed ($PWM = 180$) |
+| `'3'` | Speed Gear 3 | — | Full speed outdoor mode ($PWM = 255$) |
 
-$$\mathbf{u}_{\text{final}} = \alpha \cdot \mathbf{u}_{\text{BCI}} + (1 - \alpha) \cdot \mathbf{u}_{\text{ObstacleAvoidance}}$$
-
-1. **Clear Zone ($d_{\text{obstacle}} > 60\text{ cm}$):** $\alpha = 1.0$ (Full BCI control).
-2. **Warning Zone ($30\text{ cm} < d_{\text{obstacle}} \le 60\text{ cm}$):** $\alpha = 0.5$ (Speed de-rated to Gear 1, acoustic buzzer alert triggered).
-3. **Hazard Override ($d_{\text{obstacle}} \le 30\text{ cm}$):** $\alpha = 0.0$ (Instant autonomous emergency stop and steering deflection).
-4. **Heartbeat Watchdog (2000 ms):** Automatic braking engaged if wireless telemetry drops.
-
----
-
-## 📊 Benchmarking & Latency Budget
-
-### Information Transfer Rate (ITR)
-BCI communication throughput is quantified via Wolpaw's Information Transfer Rate:
-
-$$B = \log_2 N + P \log_2 P + (1 - P) \log_2 \left( \frac{1 - P}{N - 1} \right) \quad [\text{bits/trial}]$$
-
-$$\text{ITR} = B \cdot \left(\frac{60}{T}\right) \quad [\text{bits/min}]$$
-
-where $N = 5$ classes, $P = \text{Classification Accuracy}$, and $T = \text{Trial Duration (s)}$.
-
-### End-to-End Latency Profile
-
-| Stage | Duration | Description |
-|:---|:---:|:---|
-| **EEG Buffer Epoch** | $100\text{ ms}$ | Sliding window step size ($25\text{ samples}$ @ $250\text{ Hz}$) |
-| **IIR Notch & Bandpass DSP** | $2.4\text{ ms}$ | Scipy vectorized filtfilt / lfilter pipeline |
-| **Spectral Power & CSP Extraction** | $3.8\text{ ms}$ | Welch FFT and covariance projection |
-| **ML Inference (Random Forest / SVM)** | $1.2\text{ ms}$ | Quantized feature decision tree traversal |
-| **UART Serial Telemetry (115200 Baud)** | $0.8\text{ ms}$ | Frame serialization and byte transmission |
-| **Microcontroller Processing** | $0.4\text{ ms}$ | AVR PWM and servo duty-cycle update |
-| **Actuator Mechanical Response** | $45.0\text{ ms}$ | Motor armature spin-up & servo transit time |
-| **Total Closed-Loop Latency** | **$\approx 153.6\text{ ms}$** | **Real-time responsive control well under human reaction bounds** |
+### Fail-Safe & Safety Architecture
+- **Automatic Ultrasonic Collision Avoidance:** If either HC-SR04 sensor detects an obstacle within $30\text{ cm}$, the Arduino immediately overrides drive commands, stops both motors, and sounds the active buzzer.
+- **Heartbeat Watchdog (2000 ms):** The firmware includes a safety timeout that halts motors if communication packets cease while in motion.
+- **Emergency SOS Dispatcher (`emergency_sos.py`):** Background telemetry watcher that triggers simulated GPS alert packets upon continuous signal loss or collision flags.
 
 ---
 
 ## 🌐 Interactive Web Simulator & Hardware Bridge
 
-The project includes an interactive browser-based digital twin (`index.html`) featuring:
-- **Direct Web Serial API:** Bi-directional USB control directly from Chrome/Edge without native drivers.
-- **2D Kinematic Physics Engine:** Rigid-body dynamics, friction modeling, and raycasted obstacle collision radar.
-- **Autonomous Waypoint Navigation:** A* / potential field path planning to any user-clicked target coordinate.
-- **Multi-Map Testing Arenas:** Open Testing Arena, Hospital Corridor Maze, and Slalom Track.
-- **Live Waveform Visualizer & Telemetry Exporter:** Real-time EEG band ratios, radar sweeps, and JSON session logs.
+The repository includes a comprehensive client-side simulator and control dashboard in **`index.html`**:
+
+* **Web Serial API Bridge:** Directly connect and control your physical Arduino over USB from Google Chrome or Microsoft Edge with zero native driver installation.
+* **2D Kinematic Physics Simulation:** Real-time steering kinematics, inertia, surface friction, and raycast obstacle radar.
+* **Autonomous Waypoint Navigation:** Click anywhere on the map to deploy a navigation target; the wheelchair calculates heading and routes around obstacles.
+* **Multi-Environment Maps:** Open Testing Ground, Hospital Corridors, and Slalom Track.
+* **Telemetry Logger:** Real-time visualization of EEG spectral powers, ultrasonic distances, and JSON telemetry export.
 
 ---
 
 ## 🚀 Getting Started
 
-### 1. Prerequisites & Environment Setup
+### 1. Installation & Environment Setup
 
 ```bash
 # Clone the repository
@@ -192,39 +176,45 @@ cd Wheelchair-controlled-by-Brain-signals-
 
 # Create and activate Python virtual environment
 python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+# On Linux/macOS:
+source venv/bin/activate
+# On Windows:
+venv\Scripts\activate
 
-# Install required dependencies
+# Install dependencies
 pip install -r requirements.txt
 ```
 
-### 2. Firmware Flashing
+### 2. Uploading Arduino Firmware
 
-1. Connect your **Arduino Mega 2560 / Uno** via USB.
-2. Open `arduino_codes/last_one.ino` in Arduino IDE.
-3. Select your Board & Port and click **Upload**.
-4. *(Optional for raw EEG ADC streaming)*: Flash `arduino_codes/SpikeRecorder/SpikeRecorder.ino`.
+1. Open [arduino_codes/last_one.ino](arduino_codes/last_one.ino) in the Arduino IDE.
+2. Select your board (**Arduino Mega 2560** or **Arduino Uno**) and COM Port.
+3. Refer to [CIRCUIT_AND_HARDWARE_GUIDE.md](CIRCUIT_AND_HARDWARE_GUIDE.md) for pinout verification.
+4. Click **Upload**.
 
-### 3. Running the Signal Processing & ML Pipeline
+### 3. Running Signal Processing & Machine Learning
 
 ```bash
-# Train and benchmark the BCI Intent Classifier:
+# Run the ML classifier training & validation:
 python socket_communication_codes/bci_ml_classifier.py
 
-# Launch real-time DSP filtering with live serial bridging:
-python socket_communication_codes/eeg_signal_processor.py --eeg COM3 --motor COM5 --baud 9600
+# Run real-time DSP signal processor (auto-detects ports or specify manually):
+python socket_communication_codes/eeg_signal_processor.py --eeg COM3 --motor COM5
 
-# Start safety telemetry monitor & Emergency SOS daemon:
+# Or run in simulation mode without physical hardware:
+python socket_communication_codes/eeg_signal_processor.py --simulate
+
+# Run safety telemetry & Emergency SOS dispatcher:
 python socket_communication_codes/emergency_sos.py
 ```
 
-### 4. Launching the Web Simulator
+### 4. Running the Web Simulator
 
 ```bash
-# Start local HTTP server
+# Start a local web server
 python -m http.server 8080
 ```
-Open **`http://localhost:8080`** in your browser. Click **"Connect USB Arduino"** to link the physical wheelchair.
+Open **`http://localhost:8080`** in your browser. Click **"Connect USB Arduino"** to link the physical wheelchair over Web Serial API.
 
 ---
 
@@ -235,29 +225,29 @@ Wheelchair-controlled-by-Brain-signals-/
 ├── .github/workflows/
 │   └── deploy.yml                         # Automated CI/CD & GitHub Pages pipeline
 ├── arduino_codes/
-│   ├── last_one.ino                       # Master firmware (PWM motor drive + servo + safety)
+│   ├── last_one.ino                       # Master Arduino firmware (PWM motors + servo + ultrasonic)
 │   ├── SpikeRecorder/
-│   │   └── SpikeRecorder.ino              # 10 kHz Timer1 ADC raw signal acquisition
-│   ├── _2_ultrasonic/                     # Ranging sensor validation sketches
-│   └── _2ultrasonis_servo_DC-v2/          # Actuator calibration routines
+│   │   └── SpikeRecorder.ino              # 10 kHz ADC raw EEG acquisition firmware
+│   ├── _2_ultrasonic/                     # Ranging sensor verification sketches
+│   └── _2ultrasonis_servo_DC-v2/          # Motor & servo calibration routines
 ├── socket_communication_codes/
-│   ├── bci_ml_classifier.py               # ML motor imagery classifier (CSP, PSD, SVM, RF)
-│   ├── eeg_signal_processor.py            # Real-time IIR filtering & spectral extraction
+│   ├── bci_ml_classifier.py               # ML classifier (Welch PSD, Random Forest, SVM)
+│   ├── eeg_signal_processor.py            # DSP filtering (50Hz Notch + 0.5-30Hz BPF) & serial link
 │   ├── emergency_sos.py                   # Collision supervisor & GPS alert dispatcher
 │   └── serial communication.py            # Multi-threaded serial/UDP telemetry bridge
-├── images/                                # System schematics, CAD models & hardware diagrams
+├── images/                                # Circuit diagrams, 3D CAD models & system schematics
 ├── Demo/                                  # Animated operational demonstrations
 ├── index.html                             # NeuroWheel Web Simulator & Web Serial Dashboard
 ├── requirements.txt                       # Python dependencies manifest
-├── CIRCUIT_AND_HARDWARE_GUIDE.md          # Pinout schematics & electrical guide
-├── CONTRIBUTING.md                        # Contribution standards
+├── CIRCUIT_AND_HARDWARE_GUIDE.md          # Pinout schematics & hardware guide
+├── CONTRIBUTING.md                        # Contribution guidelines
 ├── LICENSE                                # MIT License
-└── README.md                              # Scientific & engineering documentation
+└── README.md                              # Technical & engineering documentation
 ```
 
 ---
 
-## 🎥 Demonstration Media
+## 🎥 Demonstrations
 
 | Forward / Reverse Drive | Steering Actuation | Autonomous Radar Evasion |
 |:---:|:---:|:---:|
@@ -267,7 +257,7 @@ Wheelchair-controlled-by-Brain-signals-/
 
 ## 📜 Academic Citation
 
-If you use this system, codebase, or simulator in your research or academic publications, please cite:
+If you use this system, codebase, or simulator in your research or project, please cite:
 
 ```bibtex
 @software{patel2026neurowheel,
