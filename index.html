@@ -6,51 +6,50 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>NeuroWheel - BCI Wheelchair Simulator & Web Hardware Dashboard</title>
+    <title>NeuroWheel - BCI Mission Control & Digital Twin</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-page: #f8fafc;
-            --bg-card: #ffffff;
-            --bg-subtle: #f1f5f9;
-            --border-light: #e2e8f0;
-            --border-focus: #cbd5e1;
+            --bg-page: #070b13;
+            --bg-card: rgba(13, 21, 39, 0.75);
+            --bg-card-solid: #0d1527;
+            --bg-subtle: rgba(22, 33, 58, 0.6);
+            --border-light: rgba(56, 189, 248, 0.14);
+            --border-glow: rgba(56, 189, 248, 0.35);
             
-            --text-main: #0f172a;
-            --text-muted: #64748b;
-            --text-subtle: #94a3b8;
+            --text-main: #f1f5f9;
+            --text-muted: #94a3b8;
+            --text-subtle: #64748b;
 
-            --color-primary: #2563eb;
-            --color-primary-light: #eff6ff;
-            --color-success: #16a34a;
-            --color-success-light: #f0fdf4;
-            --color-danger: #dc2626;
-            --color-danger-light: #fef2f2;
-            --color-warning: #d97706;
+            --color-primary: #38bdf8;
+            --color-primary-glow: rgba(56, 189, 248, 0.25);
+            --color-accent: #06b6d4;
+            --color-success: #10b981;
+            --color-success-glow: rgba(16, 185, 129, 0.25);
+            --color-danger: #ef4444;
+            --color-danger-glow: rgba(239, 68, 68, 0.3);
+            --color-warning: #f59e0b;
 
-            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
-            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.06), 0 4px 6px -4px rgba(0, 0, 0, 0.04);
+            --shadow-card: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            --shadow-glow: 0 0 20px rgba(56, 189, 248, 0.2);
         }
 
-        /* Dark Theme Variables */
-        body.theme-dark {
-            --bg-page: #0b0f19;
-            --bg-card: #111827;
-            --bg-subtle: #1f2937;
-            --border-light: #374151;
-            --border-focus: #4b5563;
-            --text-main: #f9fafb;
-            --text-muted: #9ca3af;
-            --text-subtle: #6b7280;
-            --color-primary: #3b82f6;
-            --color-primary-light: #1e3a8a;
-            --color-success: #22c55e;
-            --color-success-light: #064e3b;
-            --color-danger: #ef4444;
-            --color-danger-light: #7f1d1d;
+        body.theme-light {
+            --bg-page: #f0f4f8;
+            --bg-card: rgba(255, 255, 255, 0.85);
+            --bg-card-solid: #ffffff;
+            --bg-subtle: #e2e8f0;
+            --border-light: #cbd5e1;
+            --border-glow: #94a3b8;
+            --text-main: #0f172a;
+            --text-muted: #475569;
+            --text-subtle: #94a3b8;
+            --color-primary: #0284c7;
+            --color-primary-glow: rgba(2, 132, 199, 0.15);
+            --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.08);
+            --shadow-glow: 0 0 15px rgba(2, 132, 199, 0.15);
         }
 
         * {
@@ -64,22 +63,28 @@
 
         body {
             background-color: var(--bg-page);
+            background-image: 
+                radial-gradient(circle at 15% 15%, rgba(56, 189, 248, 0.05) 0%, transparent 45%),
+                radial-gradient(circle at 85% 85%, rgba(6, 182, 212, 0.05) 0%, transparent 45%);
             color: var(--text-main);
             min-height: 100vh;
             display: flex;
             flex-direction: column;
-            transition: background-color 0.2s, color 0.2s;
+            transition: background-color 0.3s, color 0.3s;
+            overflow-x: hidden;
         }
 
-        /* Header */
+        /* Mission Control Header */
         header {
             background: var(--bg-card);
+            backdrop-filter: blur(16px);
             border-bottom: 1px solid var(--border-light);
             padding: 12px 28px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: var(--shadow-sm);
+            box-shadow: var(--shadow-card);
+            z-index: 10;
         }
 
         .header-left {
@@ -89,100 +94,134 @@
         }
 
         .logo-icon {
-            width: 38px;
-            height: 38px;
-            background: var(--color-primary);
-            color: white;
-            border-radius: 8px;
+            width: 42px;
+            height: 42px;
+            background: linear-gradient(135deg, #0284c7, #06b6d4);
+            color: #ffffff;
+            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25);
+            box-shadow: 0 0 20px rgba(6, 182, 212, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
         .header-title h1 {
-            font-size: 1.15rem;
-            font-weight: 700;
+            font-size: 1.18rem;
+            font-weight: 800;
             color: var(--text-main);
             letter-spacing: -0.02em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .header-title h1 .badge-bci {
+            font-size: 0.65rem;
+            padding: 2px 7px;
+            background: rgba(56, 189, 248, 0.15);
+            border: 1px solid rgba(56, 189, 248, 0.3);
+            color: var(--color-primary);
+            border-radius: 4px;
+            font-weight: 700;
+            letter-spacing: 0.05em;
         }
 
         .header-title p {
-            font-size: 0.78rem;
+            font-size: 0.76rem;
             color: var(--text-muted);
+            font-weight: 500;
         }
 
         .header-actions {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
         }
 
         .btn-serial {
             background: var(--bg-subtle);
             border: 1px solid var(--border-light);
             color: var(--text-main);
-            padding: 6px 12px;
+            padding: 7px 14px;
             border-radius: 8px;
             font-size: 0.78rem;
             font-weight: 600;
             cursor: pointer;
             display: flex;
             align-items: center;
-            gap: 6px;
-            transition: all 0.15s;
+            gap: 8px;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(8px);
         }
 
         .btn-serial:hover {
             border-color: var(--color-primary);
             color: var(--color-primary);
+            box-shadow: var(--shadow-glow);
+            transform: translateY(-1px);
         }
 
         .btn-serial.connected {
-            background: var(--color-success-light);
+            background: rgba(16, 185, 129, 0.15);
             border-color: var(--color-success);
             color: var(--color-success);
+            box-shadow: 0 0 15px rgba(16, 185, 129, 0.25);
         }
 
         .system-status {
             display: flex;
             align-items: center;
             gap: 8px;
-            background: var(--color-success-light);
-            border: 1px solid rgba(22, 163, 74, 0.2);
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.25);
             color: var(--color-success);
             padding: 6px 14px;
             border-radius: 20px;
-            font-size: 0.78rem;
-            font-weight: 600;
+            font-size: 0.75rem;
+            font-weight: 700;
+            font-family: 'JetBrains Mono', monospace;
+            letter-spacing: 0.02em;
         }
 
         .status-dot {
-            width: 7px;
-            height: 7px;
+            width: 8px;
+            height: 8px;
             background: var(--color-success);
             border-radius: 50%;
             display: inline-block;
+            box-shadow: 0 0 10px var(--color-success);
+            animation: pulse-dot 2s infinite ease-in-out;
         }
 
-        /* Main Container */
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(0.85); }
+        }
+
+        /* Main Workspace Grid */
         .main-wrapper {
             flex: 1;
             display: grid;
-            grid-template-columns: 1fr 400px;
+            grid-template-columns: 1fr 410px;
             gap: 20px;
             padding: 20px 28px;
+            max-width: 1750px;
+            margin: 0 auto;
+            width: 100%;
         }
 
         .panel {
             background: var(--bg-card);
+            backdrop-filter: blur(20px);
             border: 1px solid var(--border-light);
-            border-radius: 12px;
+            border-radius: 16px;
             padding: 16px;
             display: flex;
             flex-direction: column;
-            box-shadow: var(--shadow-sm);
+            box-shadow: var(--shadow-card);
             position: relative;
+            overflow: hidden;
         }
 
         .panel-header {
@@ -198,46 +237,57 @@
             display: flex;
             align-items: center;
             gap: 8px;
-            font-size: 0.95rem;
+            font-size: 0.92rem;
             font-weight: 700;
             color: var(--text-main);
+            letter-spacing: -0.01em;
         }
 
         .mode-toggles {
             display: flex;
             background: var(--bg-subtle);
-            padding: 3px;
-            border-radius: 8px;
+            padding: 4px;
+            border-radius: 10px;
             gap: 4px;
+            border: 1px solid var(--border-light);
         }
 
         .mode-btn {
-            padding: 4px 10px;
+            padding: 6px 12px;
             border: none;
             background: transparent;
             color: var(--text-muted);
-            font-size: 0.72rem;
+            font-size: 0.74rem;
             font-weight: 600;
-            border-radius: 6px;
+            border-radius: 7px;
             cursor: pointer;
-            transition: all 0.15s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .mode-btn:hover {
+            color: var(--text-main);
         }
 
         .mode-btn.active {
-            background: var(--bg-card);
+            background: linear-gradient(135deg, rgba(56, 189, 248, 0.2), rgba(6, 182, 212, 0.2));
             color: var(--color-primary);
-            box-shadow: var(--shadow-sm);
+            border: 1px solid rgba(56, 189, 248, 0.4);
+            box-shadow: var(--shadow-glow);
         }
 
-        /* Arena Container */
+        /* 2D Digital Twin Arena */
         .arena-wrapper {
             flex: 1;
             position: relative;
-            background: var(--bg-subtle);
+            background: #050811;
             border: 1px solid var(--border-light);
-            border-radius: 8px;
+            border-radius: 12px;
             overflow: hidden;
-            min-height: 480px;
+            min-height: 520px;
+            box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.8);
         }
 
         canvas#simCanvas {
@@ -252,41 +302,44 @@
 
         .arena-toolbar {
             position: absolute;
-            bottom: 12px;
-            left: 12px;
-            right: 12px;
+            bottom: 14px;
+            left: 14px;
+            right: 14px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(8px);
+            background: rgba(13, 21, 39, 0.85);
+            backdrop-filter: blur(12px);
             border: 1px solid var(--border-light);
-            padding: 6px 12px;
-            border-radius: 8px;
-            font-size: 0.75rem;
+            padding: 8px 14px;
+            border-radius: 10px;
+            font-size: 0.74rem;
             color: var(--text-muted);
             pointer-events: auto;
-        }
-
-        body.theme-dark .arena-toolbar {
-            background: rgba(17, 24, 39, 0.85);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
         }
 
         .map-selector {
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 8px;
         }
 
         .map-select {
-            background: var(--bg-card);
+            background: var(--bg-subtle);
             border: 1px solid var(--border-light);
             color: var(--text-main);
-            padding: 3px 8px;
+            padding: 4px 10px;
             border-radius: 6px;
             font-size: 0.72rem;
             font-weight: 600;
             cursor: pointer;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .map-select:hover {
+            border-color: var(--color-primary);
         }
 
         /* Dashboard Column */
@@ -298,10 +351,16 @@
 
         .card {
             background: var(--bg-card);
+            backdrop-filter: blur(16px);
             border: 1px solid var(--border-light);
-            border-radius: 12px;
+            border-radius: 14px;
             padding: 14px;
-            box-shadow: var(--shadow-sm);
+            box-shadow: var(--shadow-card);
+            transition: border-color 0.2s;
+        }
+
+        .card:hover {
+            border-color: var(--border-glow);
         }
 
         .card-heading {
@@ -314,15 +373,16 @@
             margin-bottom: 10px;
         }
 
-        /* EEG Activity Canvas */
+        /* EEG Waveform Container */
         .eeg-container {
-            height: 60px;
-            background: var(--bg-subtle);
-            border: 1px solid var(--border-light);
-            border-radius: 8px;
+            height: 68px;
+            background: #04060d;
+            border: 1px solid rgba(56, 189, 248, 0.2);
+            border-radius: 10px;
             position: relative;
             overflow: hidden;
             margin-bottom: 10px;
+            box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.8);
         }
 
         canvas#eegCanvas {
@@ -331,7 +391,7 @@
             display: block;
         }
 
-        /* Metric Grid */
+        /* Telemetry Metric Grid */
         .metric-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -341,165 +401,54 @@
         .metric-box {
             background: var(--bg-subtle);
             border: 1px solid var(--border-light);
-            border-radius: 8px;
-            padding: 8px 10px;
+            border-radius: 10px;
+            padding: 9px 12px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .metric-box:hover {
+            border-color: rgba(56, 189, 248, 0.3);
+            background: rgba(22, 33, 58, 0.8);
         }
 
         .metric-label {
-            font-size: 0.68rem;
-            font-weight: 600;
+            font-size: 0.66rem;
+            font-weight: 700;
             color: var(--text-muted);
             text-transform: uppercase;
+            letter-spacing: 0.05em;
         }
 
         .metric-value {
-            font-size: 1rem;
-            font-weight: 700;
+            font-size: 1.05rem;
+            font-weight: 800;
             color: var(--color-primary);
             font-family: 'JetBrains Mono', monospace;
-            margin-top: 2px;
-        }
-
-        /* Navigation Controls */
-        .nav-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 6px;
-            margin-top: 6px;
-        }
-
-        .nav-btn {
-            background: var(--bg-card);
-            border: 1px solid var(--border-light);
-            color: var(--text-main);
-            padding: 8px 4px;
-            border-radius: 8px;
-            font-weight: 600;
-            font-size: 0.78rem;
-            cursor: pointer;
-            transition: all 0.15s ease;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 3px;
-        }
-
-        .nav-btn svg {
-            width: 16px;
-            height: 16px;
-            stroke: currentColor;
-            stroke-width: 2;
-            fill: none;
-        }
-
-        .nav-btn:hover {
-            background: var(--bg-subtle);
-            border-color: var(--border-focus);
-            transform: translateY(-1px);
-        }
-
-        .nav-btn:active, .nav-btn.active {
-            background: var(--color-primary);
-            color: #ffffff;
-            border-color: var(--color-primary);
-        }
-
-        .btn-brake {
-            background: var(--color-danger-light);
-            border-color: rgba(220, 38, 38, 0.2);
-            color: var(--color-danger);
-        }
-
-        .btn-brake:hover, .btn-brake.active {
-            background: var(--color-danger);
-            color: #ffffff;
-            border-color: var(--color-danger);
-        }
-
-        /* Gear & Voice */
-        .gear-row {
-            display: flex;
-            gap: 6px;
-            margin-top: 8px;
-        }
-
-        .gear-btn {
-            flex: 1;
-            padding: 6px 4px;
-            background: var(--bg-subtle);
-            border: 1px solid var(--border-light);
-            color: var(--text-muted);
-            border-radius: 6px;
-            font-weight: 600;
-            font-size: 0.72rem;
-            cursor: pointer;
-            transition: all 0.15s;
-        }
-
-        .gear-btn.active {
-            background: var(--text-main);
-            color: var(--bg-card);
-            border-color: var(--text-main);
-        }
-
-        .voice-bar {
-            margin-top: 8px;
-            display: flex;
-            gap: 6px;
-        }
-
-        .voice-btn, .export-btn {
-            flex: 1;
-            background: var(--bg-card);
-            border: 1px solid var(--border-light);
-            color: var(--text-main);
-            padding: 7px 10px;
-            border-radius: 6px;
-            font-weight: 600;
-            font-size: 0.74rem;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            transition: all 0.15s;
-        }
-
-        .voice-btn svg, .export-btn svg {
-            width: 14px;
-            height: 14px;
-            stroke: currentColor;
-            fill: none;
-        }
-
-        .voice-btn:hover, .export-btn:hover {
-            background: var(--bg-subtle);
-        }
-
-        .voice-btn.listening {
-            background: var(--color-danger);
-            color: #ffffff;
-            border-color: var(--color-danger);
+            margin-top: 3px;
+            letter-spacing: -0.02em;
         }
 
         /* EEG Band Bars */
         .band-bars {
             display: flex;
             flex-direction: column;
-            gap: 6px;
+            gap: 7px;
         }
 
         .band-row {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
         }
 
         .band-label {
-            font-size: 0.7rem;
+            font-size: 0.72rem;
             font-weight: 700;
             color: var(--text-main);
-            min-width: 58px;
+            min-width: 62px;
             line-height: 1.1;
         }
 
@@ -511,55 +460,205 @@
 
         .band-track {
             flex: 1;
-            height: 12px;
-            background: var(--bg-subtle);
+            height: 10px;
+            background: rgba(0, 0, 0, 0.4);
             border: 1px solid var(--border-light);
-            border-radius: 6px;
+            border-radius: 5px;
             overflow: hidden;
+            position: relative;
         }
 
         .band-fill {
             height: 100%;
-            border-radius: 6px;
-            transition: width 0.4s ease;
+            border-radius: 5px;
+            transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
         }
 
-        .band-delta { background: linear-gradient(90deg, #6366f1, #818cf8); }
-        .band-theta { background: linear-gradient(90deg, #06b6d4, #22d3ee); }
-        .band-alpha { background: linear-gradient(90deg, #16a34a, #4ade80); }
-        .band-beta  { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+        .band-delta { background: linear-gradient(90deg, #6366f1, #818cf8); box-shadow: 0 0 10px rgba(99, 102, 241, 0.5); }
+        .band-theta { background: linear-gradient(90deg, #06b6d4, #22d3ee); box-shadow: 0 0 10px rgba(6, 182, 212, 0.5); }
+        .band-alpha { background: linear-gradient(90deg, #10b981, #34d399); box-shadow: 0 0 10px rgba(16, 185, 129, 0.5); }
+        .band-beta  { background: linear-gradient(90deg, #f59e0b, #fbbf24); box-shadow: 0 0 10px rgba(245, 158, 11, 0.5); }
 
         .band-pct {
             font-family: 'JetBrains Mono', monospace;
-            font-size: 0.7rem;
-            font-weight: 600;
+            font-size: 0.72rem;
+            font-weight: 700;
             color: var(--text-muted);
-            min-width: 30px;
+            min-width: 34px;
             text-align: right;
         }
 
-        /* Telemetry Stream Box */
-        .log-container {
-            height: 100px;
+        /* Navigation Control Pad */
+        .nav-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 7px;
+            margin-bottom: 10px;
+        }
+
+        .nav-btn {
             background: var(--bg-subtle);
             border: 1px solid var(--border-light);
+            color: var(--text-main);
+            padding: 10px 6px;
+            border-radius: 10px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            font-weight: 700;
+            font-size: 0.74rem;
+            transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .nav-btn svg {
+            width: 16px;
+            height: 16px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2.2;
+        }
+
+        .nav-btn:hover {
+            border-color: var(--color-primary);
+            color: var(--color-primary);
+            background: rgba(56, 189, 248, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .nav-btn:active, .nav-btn.active {
+            background: linear-gradient(135deg, #0284c7, #06b6d4);
+            color: #ffffff;
+            border-color: var(--color-primary);
+            box-shadow: 0 0 15px rgba(6, 182, 212, 0.5);
+            transform: translateY(0);
+        }
+
+        .nav-btn.btn-brake {
+            background: rgba(239, 68, 68, 0.12);
+            border-color: rgba(239, 68, 68, 0.35);
+            color: var(--color-danger);
+        }
+
+        .nav-btn.btn-brake:hover {
+            background: rgba(239, 68, 68, 0.2);
+            border-color: var(--color-danger);
+            color: #ffffff;
+        }
+
+        .nav-btn.btn-brake.active {
+            background: var(--color-danger);
+            color: #ffffff;
+            box-shadow: 0 0 15px var(--color-danger-glow);
+        }
+
+        /* Segmented Speed Gear Shifter */
+        .gear-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 6px;
+            margin-bottom: 10px;
+        }
+
+        .gear-btn {
+            background: var(--bg-subtle);
+            border: 1px solid var(--border-light);
+            color: var(--text-muted);
+            padding: 6px 4px;
             border-radius: 8px;
-            padding: 6px 10px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            font-family: 'JetBrains Mono', monospace;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 3px;
+        }
+
+        .gear-btn:hover {
+            color: var(--text-main);
+            border-color: var(--border-glow);
+        }
+
+        .gear-btn.active {
+            background: linear-gradient(135deg, rgba(56, 189, 248, 0.2), rgba(6, 182, 212, 0.2));
+            color: var(--color-primary);
+            border-color: var(--color-primary);
+            box-shadow: var(--shadow-glow);
+        }
+
+        /* Voice & Telemetry Bar */
+        .voice-bar {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .voice-btn, .export-btn {
+            background: var(--bg-subtle);
+            border: 1px solid var(--border-light);
+            color: var(--text-main);
+            padding: 7px 10px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 0.74rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+
+        .voice-btn svg, .export-btn svg {
+            width: 14px;
+            height: 14px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2;
+        }
+
+        .voice-btn:hover, .export-btn:hover {
+            border-color: var(--color-primary);
+            color: var(--color-primary);
+        }
+
+        .voice-btn.listening {
+            background: var(--color-danger);
+            color: #ffffff;
+            border-color: var(--color-danger);
+            box-shadow: 0 0 15px var(--color-danger-glow);
+            animation: pulse-dot 1.5s infinite ease-in-out;
+        }
+
+        /* Cyberpunk Terminal Stream */
+        .log-container {
+            height: 110px;
+            background: #04060d;
+            border: 1px solid rgba(56, 189, 248, 0.2);
+            border-radius: 10px;
+            padding: 8px 12px;
             font-family: 'JetBrains Mono', monospace;
             font-size: 0.7rem;
             color: var(--text-muted);
             overflow-y: auto;
             display: flex;
             flex-direction: column;
-            gap: 3px;
+            gap: 4px;
+            box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.8);
         }
 
-        .log-time { color: var(--text-subtle); margin-right: 6px; }
+        .log-time { color: var(--text-subtle); margin-right: 6px; font-weight: 600; }
         .log-msg { color: var(--text-main); font-weight: 500; }
-        .log-alert { color: var(--color-danger); font-weight: 600; }
-        .log-serial { color: var(--color-primary); font-weight: 600; }
+        .log-alert { color: var(--color-danger); font-weight: 700; }
+        .log-serial { color: var(--color-primary); font-weight: 700; }
 
-        @media (max-width: 960px) {
+        @media (max-width: 1024px) {
             .main-wrapper {
                 grid-template-columns: 1fr;
             }
@@ -568,42 +667,42 @@
 </head>
 <body>
 
-    <!-- Header -->
+    <!-- Mission Control Header -->
     <header>
         <div class="header-left">
             <div class="logo-icon">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 4.44-2.04z"></path>
                     <path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-4.44-2.04z"></path>
                 </svg>
             </div>
             <div class="header-title">
-                <h1>NeuroWheel BCI Dashboard & Simulator</h1>
-                <p>Brain-Computer Interface Closed-Loop Mobility Controller</p>
+                <h1>NeuroWheel <span class="badge-bci">BCI DIGITAL TWIN</span></h1>
+                <p>Closed-Loop Brain-Computer Interface Assistive Mobility System</p>
             </div>
         </div>
         <div class="header-actions">
             <!-- Web Serial Direct USB Link -->
             <button class="btn-serial" id="btnConnectSerial" onclick="connectWebSerial()">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
                 <span id="serialStatusText">Connect USB Arduino</span>
             </button>
             <button class="btn-serial" onclick="toggleTheme()">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
                 </svg>
                 <span>Theme</span>
             </button>
             <div class="system-status">
                 <span class="status-dot"></span>
-                <span id="systemStatusText">DSP Online</span>
+                <span id="systemStatusText">DSP ONLINE</span>
             </div>
         </div>
     </header>
 
     <!-- Main Grid -->
     <div class="main-wrapper">
-        <!-- Left: Simulation Arena -->
+        <!-- Left: 2D Simulation Arena -->
         <div class="panel">
             <div class="panel-header">
                 <div class="panel-title">
@@ -612,18 +711,18 @@
                         <line x1="3" y1="9" x2="21" y2="9"></line>
                         <line x1="9" y1="21" x2="9" y2="9"></line>
                     </svg>
-                    <span>2D Test Arena</span>
+                    <span>2D Tactical Testing Arena</span>
                 </div>
                 <!-- Control Mode Switcher -->
                 <div class="mode-toggles">
                     <button class="mode-btn active" id="modeManual" onclick="setMode('manual')">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;margin-right:4px;"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M6 8h.001M10 8h.001M14 8h.001M18 8h.001M8 12h.001M12 12h.001M16 12h.001M6 16h12"/></svg>Manual
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M6 8h.001M10 8h.001M14 8h.001M18 8h.001M8 12h.001M12 12h.001M16 12h.001M6 16h12"/></svg>Manual
                     </button>
                     <button class="mode-btn" id="modeBCI" onclick="setMode('bci')">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;margin-right:4px;"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>Simulated BCI
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>Simulated BCI
                     </button>
                     <button class="mode-btn" id="modeWaypoint" onclick="setMode('waypoint')">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;margin-right:4px;"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/><line x1="22" y1="12" x2="18" y2="12"/><line x1="6" y1="12" x2="2" y2="12"/><line x1="12" y1="6" x2="12" y2="2"/><line x1="12" y1="22" x2="12" y2="18"/></svg>Autonomous Waypoint
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/><line x1="22" y1="12" x2="18" y2="12"/><line x1="6" y1="12" x2="2" y2="12"/><line x1="12" y1="6" x2="12" y2="2"/><line x1="12" y1="22" x2="12" y2="18"/></svg>Autonomous Waypoint
                     </button>
                 </div>
             </div>
@@ -632,6 +731,7 @@
                 <canvas id="simCanvas"></canvas>
                 <div class="arena-toolbar">
                     <div class="map-selector">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
                         <span>Environment:</span>
                         <select class="map-select" id="mapSelect" onchange="changeMap(this.value)">
                             <option value="lab">Testing Ground (Movable Box)</option>
@@ -639,7 +739,7 @@
                             <option value="slalom">Slalom Obstacle Course</option>
                         </select>
                     </div>
-                    <div id="arenaHelpText">Tip: Drag obstacle boxes or click arena to place waypoint target.</div>
+                    <div id="arenaHelpText">Drag obstacles or click canvas to deploy autonomous waypoint beacon.</div>
                 </div>
             </div>
         </div>
@@ -650,10 +750,10 @@
             <div class="card">
                 <div class="card-heading">
                     <span style="display:flex;align-items:center;gap:6px;">
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
                         <span>EEG Cortical Signal</span>
                     </span>
-                    <span id="stateLabel" style="color: var(--color-primary); font-family: 'JetBrains Mono', monospace; font-size: 0.76rem;">STOPPED ('s')</span>
+                    <span id="stateLabel" style="color: var(--color-primary); font-family: 'JetBrains Mono', monospace; font-size: 0.76rem; font-weight:700;">STOPPED ('s')</span>
                 </div>
                 <div class="eeg-container">
                     <canvas id="eegCanvas"></canvas>
@@ -695,10 +795,10 @@
             <div class="card">
                 <div class="card-heading">
                     <span style="display:flex;align-items:center;gap:6px;">
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
                         <span>EEG Band Power (PSD)</span>
                     </span>
-                    <span id="dominantBand" style="color: var(--color-primary); font-family: 'JetBrains Mono', monospace; font-size: 0.74rem;">ALPHA dominant</span>
+                    <span id="dominantBand" style="color: var(--color-primary); font-family: 'JetBrains Mono', monospace; font-size: 0.74rem; font-weight:700;">ALPHA dominant</span>
                 </div>
                 <div class="band-bars">
                     <div class="band-row">
@@ -728,7 +828,7 @@
             <div class="card">
                 <div class="card-heading">
                     <span style="display:flex;align-items:center;gap:6px;">
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
                         <span>Navigation Triggers</span>
                     </span>
                 </div>
@@ -765,13 +865,13 @@
                 <!-- Speed Gear -->
                 <div class="gear-row">
                     <button class="gear-btn" id="gear1" onclick="setGear('1', 120)">
-                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;vertical-align:middle;margin-right:2px;"><path d="M12 2v20"/></svg>Gear 1 (120)
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20"/></svg>Gear 1 (120)
                     </button>
                     <button class="gear-btn active" id="gear2" onclick="setGear('2', 180)">
-                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;vertical-align:middle;margin-right:2px;"><path d="M8 2v20M16 2v20"/></svg>Gear 2 (180)
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 2v20M16 2v20"/></svg>Gear 2 (180)
                     </button>
                     <button class="gear-btn" id="gear3" onclick="setGear('3', 255)">
-                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;vertical-align:middle;margin-right:2px;"><path d="M4 2v20M12 2v20M20 2v20"/></svg>Gear 3 (255)
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 2v20M12 2v20M20 2v20"/></svg>Gear 3 (255)
                     </button>
                 </div>
 
@@ -792,13 +892,13 @@
             <div class="card" style="flex: 1;">
                 <div class="card-heading">
                     <span style="display:flex;align-items:center;gap:6px;">
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
                         <span>Telemetry Stream</span>
                     </span>
                 </div>
                 <div class="log-container" id="logBox">
-                    <div><span class="log-time">00:00:01</span> <span class="log-msg">System initialized.</span></div>
-                    <div><span class="log-time">00:00:02</span> <span class="log-msg">DSP Closed-loop ready.</span></div>
+                    <div><span class="log-time">00:00:01</span> <span class="log-msg">[SYSTEM] Digital Twin Initialized.</span></div>
+                    <div><span class="log-time">00:00:02</span> <span class="log-msg">[DSP] Real-Time IIR Closed-Loop Active.</span></div>
                 </div>
             </div>
         </div>
@@ -819,7 +919,7 @@
             const imgData = offCtx.getImageData(0, 0, offCanvas.width, offCanvas.height);
             const d = imgData.data;
             for (let i = 0; i < d.length; i += 4) {
-                if (d[i] > 225 && d[i+1] > 225 && d[i+2] > 225) {
+                if (d[i] > 220 && d[i+1] > 220 && d[i+2] > 220) {
                     d[i+3] = 0;
                 }
             }
@@ -842,7 +942,7 @@
             const imgData = offCtx.getImageData(0, 0, offCanvas.width, offCanvas.height);
             const d = imgData.data;
             for (let i = 0; i < d.length; i += 4) {
-                if (d[i] > 225 && d[i+1] > 225 && d[i+2] > 225) {
+                if (d[i] > 220 && d[i+1] > 220 && d[i+2] > 220) {
                     d[i+3] = 0;
                 }
             }
@@ -855,7 +955,7 @@
         const state = {
             mode: 'manual', // 'manual', 'bci', 'waypoint'
             x: 200,
-            y: 240,
+            y: 260,
             angle: 0,
             speed: 0,
             targetSpeed: 0,
@@ -864,8 +964,9 @@
             pwm: 180,
             servoAngle: 55,
             obstacles: [
-                { x: 380, y: 240, w: 50, h: 50 }
+                { x: 420, y: 260, w: 56, h: 56 }
             ],
+            trail: [],
             waypoint: null,
             frontDist: 200,
             audioCtx: null,
@@ -891,7 +992,7 @@
         setTimeout(resizeCanvases, 100);
 
         function toggleTheme() {
-            document.body.classList.toggle('theme-dark');
+            document.body.classList.toggle('theme-light');
         }
 
         function playBuzzer() {
@@ -899,13 +1000,13 @@
                 if (!state.audioCtx) state.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
                 const osc = state.audioCtx.createOscillator();
                 const gain = state.audioCtx.createGain();
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(800, state.audioCtx.currentTime);
-                gain.gain.setValueAtTime(0.04, state.audioCtx.currentTime);
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(880, state.audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.05, state.audioCtx.currentTime);
                 osc.connect(gain);
                 gain.connect(state.audioCtx.destination);
                 osc.start();
-                osc.stop(state.audioCtx.currentTime + 0.06);
+                osc.stop(state.audioCtx.currentTime + 0.08);
             } catch(e) {}
         }
 
@@ -920,7 +1021,6 @@
             logBox.appendChild(div);
             logBox.scrollTop = logBox.scrollHeight;
 
-            // Save in telemetry log
             state.telemetryLog.push({
                 time: now,
                 x: Math.round(state.x),
@@ -946,7 +1046,7 @@
                     state.serialWriter = null;
                     document.getElementById('btnConnectSerial').classList.remove('connected');
                     document.getElementById('serialStatusText').innerText = 'Connect USB Arduino';
-                    log("USB Serial disconnected.");
+                    log("[SERIAL] USB Serial link disconnected.");
                     return;
                 }
 
@@ -957,10 +1057,10 @@
                 state.serialWriter = encoder.writable.getWriter();
 
                 document.getElementById('btnConnectSerial').classList.add('connected');
-                document.getElementById('serialStatusText').innerText = 'Arduino USB Connected';
+                document.getElementById('serialStatusText').innerText = 'Arduino USB Active';
                 log("[SERIAL] USB Arduino connected directly via Web Serial (9600 baud)!", false, true);
             } catch (err) {
-                log(`Serial Error: ${err.message}`, true);
+                log(`[SERIAL ERROR] ${err.message}`, true);
             }
         }
 
@@ -968,7 +1068,7 @@
             if (state.serialWriter) {
                 try {
                     await state.serialWriter.write(cmd);
-                    log(`[TX Serial] Sent '${cmd}' to Arduino.`, false, true);
+                    log(`[TX SERIAL] Sent '${cmd}' to Arduino.`, false, true);
                 } catch(e) {}
             }
         }
@@ -979,33 +1079,33 @@
             if (newMode === 'manual') document.getElementById('modeManual').classList.add('active');
             if (newMode === 'bci') document.getElementById('modeBCI').classList.add('active');
             if (newMode === 'waypoint') document.getElementById('modeWaypoint').classList.add('active');
-            log(`Control Mode changed to: ${newMode.toUpperCase()}`);
+            log(`[MODE] Control mode set to: ${newMode.toUpperCase()}`);
         }
 
         function changeMap(mapName) {
             if (mapName === 'lab') {
-                state.obstacles = [{ x: 380, y: 240, w: 50, h: 50 }];
+                state.obstacles = [{ x: 420, y: 260, w: 56, h: 56 }];
             } else if (mapName === 'corridor') {
                 state.obstacles = [
-                    { x: 260, y: 150, w: 40, h: 40 },
-                    { x: 440, y: 320, w: 40, h: 40 },
-                    { x: 350, y: 240, w: 40, h: 40 }
+                    { x: 260, y: 160, w: 45, h: 45 },
+                    { x: 480, y: 360, w: 45, h: 45 },
+                    { x: 370, y: 260, w: 45, h: 45 }
                 ];
             } else if (mapName === 'slalom') {
                 state.obstacles = [
-                    { x: 250, y: 180, w: 35, h: 35 },
-                    { x: 370, y: 300, w: 35, h: 35 },
-                    { x: 490, y: 180, w: 35, h: 35 }
+                    { x: 260, y: 190, w: 38, h: 38 },
+                    { x: 400, y: 330, w: 38, h: 38 },
+                    { x: 540, y: 190, w: 38, h: 38 }
                 ];
             }
-            log(`Arena environment loaded: ${mapName}`);
+            log(`[ARENA] Environment loaded: ${mapName}`);
         }
 
         function triggerCmd(cmd) {
             state.currentCmd = cmd;
             const names = { f: "FORWARD ('f')", b: "BACKWARD ('b')", l: "TURN LEFT ('l')", r: "TURN RIGHT ('r')", s: "STOP ('s')" };
             document.getElementById('stateLabel').innerText = names[cmd] || cmd;
-            log(`Command: '${cmd}' (${names[cmd] || ''})`);
+            log(`[COMMAND] '${cmd}' (${names[cmd] || ''})`);
             sendSerialCommand(cmd);
 
             document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
@@ -1013,19 +1113,19 @@
             if (btnMap[cmd]) document.getElementById(btnMap[cmd]).classList.add('active');
 
             if (cmd === 'f') {
-                state.targetSpeed = (state.pwm / 255) * 3.0;
+                state.targetSpeed = (state.pwm / 255) * 3.2;
                 state.servoAngle = 55;
             } else if (cmd === 'b') {
-                state.targetSpeed = -(state.pwm / 255) * 2.0;
+                state.targetSpeed = -(state.pwm / 255) * 2.2;
                 state.servoAngle = 55;
             } else if (cmd === 'l') {
                 state.servoAngle = 110;
-                state.angle -= 0.5;
-                state.targetSpeed = 1.0;
+                state.angle -= 0.52;
+                state.targetSpeed = 1.2;
             } else if (cmd === 'r') {
                 state.servoAngle = 10;
-                state.angle += 0.5;
-                state.targetSpeed = 1.0;
+                state.angle += 0.52;
+                state.targetSpeed = 1.2;
             } else if (cmd === 's') {
                 state.targetSpeed = 0;
                 state.speed = 0;
@@ -1039,9 +1139,9 @@
             document.querySelectorAll('.gear-btn').forEach(b => b.classList.remove('active'));
             document.getElementById(`gear${gearNum}`).classList.add('active');
             document.getElementById('pwmVal').innerText = `${pwmVal} PWM`;
-            log(`Speed Gear changed to ${gearNum} (${pwmVal} PWM)`);
+            log(`[GEAR] Speed gear set to Gear ${gearNum} (${pwmVal} PWM)`);
             sendSerialCommand(gearNum);
-            if (state.currentCmd === 'f') state.targetSpeed = (state.pwm / 255) * 3.0;
+            if (state.currentCmd === 'f') state.targetSpeed = (state.pwm / 255) * 3.2;
         }
 
         // Draggable Obstacle & Click to set Waypoint
@@ -1051,18 +1151,16 @@
             const mouseX = e.clientX - rect.left;
             const mouseY = e.clientY - rect.top;
 
-            // Check if clicking near obstacle
             for (let obs of state.obstacles) {
-                if (Math.hypot(obs.x - mouseX, obs.y - mouseY) < 35) {
+                if (Math.hypot(obs.x - mouseX, obs.y - mouseY) < 40) {
                     draggedObs = obs;
                     return;
                 }
             }
 
-            // In Waypoint mode, click sets navigation target
             if (state.mode === 'waypoint') {
                 state.waypoint = { x: mouseX, y: mouseY };
-                log(`[WAYPOINT] Target set at (${Math.round(mouseX)}, ${Math.round(mouseY)})`);
+                log(`[WAYPOINT] Target beacon set at (${Math.round(mouseX)}, ${Math.round(mouseY)})`);
             }
         });
 
@@ -1102,7 +1200,7 @@
                 recognition.interimResults = false;
                 recognition.onresult = (e) => {
                     const phrase = e.results[e.results.length - 1][0].transcript.toLowerCase().trim();
-                    log(`Voice heard: "${phrase}"`);
+                    log(`[VOICE] Received: "${phrase}"`);
                     if (phrase.includes('forward') || phrase.includes('front') || phrase.includes('go')) triggerCmd('f');
                     else if (phrase.includes('back') || phrase.includes('reverse')) triggerCmd('b');
                     else if (phrase.includes('left')) triggerCmd('l');
@@ -1135,13 +1233,13 @@
             log("[EXPORT] Telemetry log exported successfully.");
         }
 
-        // Distance Ranging against all obstacles
+        // Distance Ranging
         function getDistance() {
             let minDist = 250;
             for (let obs of state.obstacles) {
                 const dx = obs.x - state.x;
                 const dy = obs.y - state.y;
-                const dist = Math.hypot(dx, dy) - 25;
+                const dist = Math.hypot(dx, dy) - 28;
                 const angleToObs = Math.atan2(dy, dx);
                 let diffAngle = Math.abs(angleToObs - state.angle);
                 while (diffAngle > Math.PI) diffAngle -= Math.PI * 2;
@@ -1155,47 +1253,54 @@
             return minDist;
         }
 
-        // Physics & Rendering Loop
-        let waveOffset = 0;
+        // Physics & Animation Loop
+        let tick = 0;
         function loop() {
+            tick++;
             state.frontDist = getDistance();
             document.getElementById('frontDistVal').innerText = `${state.frontDist} cm`;
             document.getElementById('servoAngleVal').innerText = `${state.servoAngle}°`;
 
             const safetyEl = document.getElementById('safetyVal');
 
-            // Autonomous Waypoint Navigation Logic
+            // Autonomous Waypoint Navigation
             if (state.mode === 'waypoint' && state.waypoint) {
                 const dx = state.waypoint.x - state.x;
                 const dy = state.waypoint.y - state.y;
                 const distToTarget = Math.hypot(dx, dy);
 
-                if (distToTarget < 20) {
+                if (distToTarget < 22) {
                     triggerCmd('s');
                     state.waypoint = null;
-                    log("[NAVIGATION] Destination waypoint reached!", false);
+                    log("[NAVIGATION] Waypoint destination achieved.", false);
                 } else {
                     const desiredAngle = Math.atan2(dy, dx);
                     let angleDiff = desiredAngle - state.angle;
                     while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
                     while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
 
-                    state.angle += angleDiff * 0.05;
-                    state.targetSpeed = 1.8;
+                    state.angle += angleDiff * 0.055;
+                    state.targetSpeed = 1.9;
                     state.servoAngle = Math.round(55 + (angleDiff * 25));
                 }
             }
 
             if (state.frontDist < 30) {
-                safetyEl.innerText = "OBSTACLE DETECTED";
+                safetyEl.innerText = "HAZARD IMMINENT";
                 safetyEl.style.color = "var(--color-danger)";
                 playBuzzer();
 
-                // Automatic Obstacle Avoidance
-                state.angle += 0.035;
+                // Autonomous Evasion
+                state.angle += 0.038;
                 state.servoAngle = 10;
-                state.x += Math.cos(state.angle) * 1.2;
-                state.y += Math.sin(state.angle) * 1.2;
+                state.x += Math.cos(state.angle) * 1.3;
+                state.y += Math.sin(state.angle) * 1.3;
+            } else if (state.frontDist < 60) {
+                safetyEl.innerText = "WARNING (PROXIMITY)";
+                safetyEl.style.color = "var(--color-warning)";
+                state.speed += (state.targetSpeed - state.speed) * 0.12;
+                state.x += Math.cos(state.angle) * state.speed;
+                state.y += Math.sin(state.angle) * state.speed;
             } else {
                 safetyEl.innerText = "CLEAR";
                 safetyEl.style.color = "var(--color-success)";
@@ -1205,7 +1310,13 @@
                 state.y += Math.sin(state.angle) * state.speed;
             }
 
-            const pad = 35;
+            // Record trail
+            if (Math.abs(state.speed) > 0.2 && tick % 3 === 0) {
+                state.trail.push({ x: state.x, y: state.y, alpha: 1.0 });
+                if (state.trail.length > 25) state.trail.shift();
+            }
+
+            const pad = 38;
             state.x = Math.max(pad, Math.min(simCanvas.width - pad, state.x));
             state.y = Math.max(pad, Math.min(simCanvas.height - pad, state.y));
 
@@ -1220,37 +1331,72 @@
             const h = simCanvas.height;
             simCtx.clearRect(0, 0, w, h);
 
-            // Clean Grid Lines
-            const isDark = document.body.classList.contains('theme-dark');
-            simCtx.strokeStyle = isDark ? '#1f2937' : '#f1f5f9';
+            // High-Tech Cyber Grid
+            simCtx.strokeStyle = 'rgba(56, 189, 248, 0.05)';
             simCtx.lineWidth = 1;
-            for (let x = 0; x < w; x += 32) {
+            for (let x = 0; x < w; x += 36) {
                 simCtx.beginPath(); simCtx.moveTo(x, 0); simCtx.lineTo(x, h); simCtx.stroke();
             }
-            for (let y = 0; y < h; y += 32) {
+            for (let y = 0; y < h; y += 36) {
                 simCtx.beginPath(); simCtx.moveTo(0, y); simCtx.lineTo(w, y); simCtx.stroke();
             }
 
-            // Draw Waypoint Target if active
+            // Center Blueprint Axes
+            simCtx.strokeStyle = 'rgba(56, 189, 248, 0.12)';
+            simCtx.setLineDash([6, 6]);
+            simCtx.beginPath(); simCtx.moveTo(w / 2, 0); simCtx.lineTo(w / 2, h); simCtx.stroke();
+            simCtx.beginPath(); simCtx.moveTo(0, h / 2); simCtx.lineTo(w, h / 2); simCtx.stroke();
+            simCtx.setLineDash([]);
+
+            // Draw Skid & Motion Trails
+            for (let i = 0; i < state.trail.length; i++) {
+                const pt = state.trail[i];
+                pt.alpha -= 0.035;
+                if (pt.alpha > 0) {
+                    simCtx.fillStyle = `rgba(56, 189, 248, ${pt.alpha * 0.3})`;
+                    simCtx.beginPath();
+                    simCtx.arc(pt.x, pt.y, 3, 0, Math.PI * 2);
+                    simCtx.fill();
+                }
+            }
+
+            // Draw Holographic Waypoint Target Beacon
             if (state.waypoint) {
                 simCtx.save();
-                simCtx.strokeStyle = '#22c55e';
-                simCtx.fillStyle = 'rgba(34, 197, 94, 0.2)';
+                const timeSec = tick * 0.05;
+
+                // Pulsing Target Rings
+                simCtx.strokeStyle = '#06b6d4';
                 simCtx.lineWidth = 2;
+                simCtx.shadowColor = '#06b6d4';
+                simCtx.shadowBlur = 15;
+
                 simCtx.beginPath();
-                simCtx.arc(state.waypoint.x, state.waypoint.y, 14, 0, Math.PI * 2);
-                simCtx.fill();
+                simCtx.arc(state.waypoint.x, state.waypoint.y, 16 + Math.sin(timeSec * 3) * 3, 0, Math.PI * 2);
                 simCtx.stroke();
 
-                // Target center flag
-                simCtx.fillStyle = '#22c55e';
+                simCtx.fillStyle = 'rgba(6, 182, 212, 0.25)';
                 simCtx.beginPath();
-                simCtx.arc(state.waypoint.x, state.waypoint.y, 4, 0, Math.PI * 2);
+                simCtx.arc(state.waypoint.x, state.waypoint.y, 6, 0, Math.PI * 2);
                 simCtx.fill();
 
-                // Dotted line from wheelchair to target
-                simCtx.setLineDash([4, 4]);
-                simCtx.strokeStyle = 'rgba(34, 197, 94, 0.5)';
+                // Holographic rotating crosshair ticks
+                simCtx.save();
+                simCtx.translate(state.waypoint.x, state.waypoint.y);
+                simCtx.rotate(timeSec);
+                for (let a = 0; a < 4; a++) {
+                    simCtx.rotate(Math.PI / 2);
+                    simCtx.beginPath();
+                    simCtx.moveTo(22, 0);
+                    simCtx.lineTo(28, 0);
+                    simCtx.stroke();
+                }
+                simCtx.restore();
+
+                // Animated trajectory laser spline
+                simCtx.setLineDash([6, 6]);
+                simCtx.lineDashOffset = -tick * 0.8;
+                simCtx.strokeStyle = 'rgba(6, 182, 212, 0.6)';
                 simCtx.beginPath();
                 simCtx.moveTo(state.x, state.y);
                 simCtx.lineTo(state.waypoint.x, state.waypoint.y);
@@ -1258,106 +1404,167 @@
                 simCtx.restore();
             }
 
-            // Draw Obstacles
+            // Draw Tactical Obstacles
             for (let obs of state.obstacles) {
                 simCtx.save();
+                const obsSize = obs.w || 56;
+
+                // Drop shadow
+                simCtx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+                simCtx.shadowBlur = 16;
+                simCtx.shadowOffsetX = 4;
+                simCtx.shadowOffsetY = 6;
+
                 if (obstacleImgReady) {
-                    const obsSize = obs.w || 50;
                     simCtx.drawImage(obstacleImg, obs.x - obsSize / 2, obs.y - obsSize / 2, obsSize, obsSize);
                 } else {
-                    simCtx.fillStyle = '#fee2e2';
+                    simCtx.fillStyle = '#1e293b';
                     simCtx.strokeStyle = '#ef4444';
                     simCtx.lineWidth = 2;
                     simCtx.beginPath();
-                    simCtx.roundRect(obs.x - 25, obs.y - 25, 50, 50, 6);
+                    simCtx.roundRect(obs.x - obsSize / 2, obs.y - obsSize / 2, obsSize, obsSize, 8);
                     simCtx.fill();
+                    simCtx.stroke();
+
+                    // Hazard X
+                    simCtx.strokeStyle = 'rgba(239, 68, 68, 0.4)';
+                    simCtx.beginPath();
+                    simCtx.moveTo(obs.x - obsSize / 4, obs.y - obsSize / 4);
+                    simCtx.lineTo(obs.x + obsSize / 4, obs.y + obsSize / 4);
+                    simCtx.moveTo(obs.x + obsSize / 4, obs.y - obsSize / 4);
+                    simCtx.lineTo(obs.x - obsSize / 4, obs.y + obsSize / 4);
                     simCtx.stroke();
                 }
                 simCtx.restore();
             }
 
-            // Draw Ultrasonic Radar Cone
+            // Draw Ultrasonic Radar Acoustic Cone
             simCtx.save();
             simCtx.translate(state.x, state.y);
             simCtx.rotate(state.angle);
 
-            const radarLen = Math.min(180, state.frontDist * 1.5 + 20);
-            const isAlert = state.frontDist < 30;
+            const radarLen = Math.min(190, state.frontDist * 1.5 + 24);
+            const isHazard = state.frontDist < 30;
+            const isWarn = state.frontDist >= 30 && state.frontDist < 60;
 
-            const grad = simCtx.createRadialGradient(0, 0, 10, 0, 0, radarLen);
-            grad.addColorStop(0, isAlert ? 'rgba(239, 68, 68, 0.25)' : 'rgba(37, 99, 235, 0.18)');
-            grad.addColorStop(1, isAlert ? 'rgba(239, 68, 68, 0)' : 'rgba(37, 99, 235, 0)');
+            const grad = simCtx.createRadialGradient(0, 0, 8, 0, 0, radarLen);
+            if (isHazard) {
+                grad.addColorStop(0, 'rgba(239, 68, 68, 0.4)');
+                grad.addColorStop(1, 'rgba(239, 68, 68, 0)');
+            } else if (isWarn) {
+                grad.addColorStop(0, 'rgba(245, 158, 11, 0.3)');
+                grad.addColorStop(1, 'rgba(245, 158, 11, 0)');
+            } else {
+                grad.addColorStop(0, 'rgba(56, 189, 248, 0.25)');
+                grad.addColorStop(1, 'rgba(56, 189, 248, 0)');
+            }
 
             simCtx.fillStyle = grad;
             simCtx.beginPath();
             simCtx.moveTo(0, 0);
-            simCtx.arc(0, 0, radarLen, -0.35, 0.35);
+            simCtx.arc(0, 0, radarLen, -0.38, 0.38);
             simCtx.closePath();
             simCtx.fill();
 
-            simCtx.strokeStyle = isAlert ? '#ef4444' : '#60a5fa';
+            // Distance arc waves
+            simCtx.strokeStyle = isHazard ? '#ef4444' : (isWarn ? '#f59e0b' : '#38bdf8');
             simCtx.setLineDash([4, 4]);
-            simCtx.lineWidth = 1.5;
+            simCtx.lineWidth = 1.6;
             simCtx.beginPath();
-            simCtx.moveTo(0, 0);
-            simCtx.lineTo(radarLen, 0);
+            simCtx.arc(0, 0, radarLen, -0.38, 0.38);
             simCtx.stroke();
+
+            // Dual Headlight volumetric beam
+            simCtx.fillStyle = 'rgba(255, 255, 255, 0.12)';
+            simCtx.beginPath();
+            simCtx.moveTo(18, -8);
+            simCtx.lineTo(60, -22);
+            simCtx.lineTo(60, -4);
+            simCtx.closePath();
+            simCtx.fill();
+
+            simCtx.beginPath();
+            simCtx.moveTo(18, 8);
+            simCtx.lineTo(60, 4);
+            simCtx.lineTo(60, 22);
+            simCtx.closePath();
+            simCtx.fill();
 
             // Wheelchair Sprite
             simCtx.setLineDash([]);
             if (wheelchairImgReady) {
                 simCtx.rotate(-Math.PI / 2);
-                const spriteSize = 70;
+                const spriteSize = 74;
+                simCtx.shadowColor = 'rgba(0, 0, 0, 0.7)';
+                simCtx.shadowBlur = 14;
                 simCtx.drawImage(wheelchairImg, -spriteSize / 2, -spriteSize / 2, spriteSize, spriteSize);
                 simCtx.rotate(Math.PI / 2);
             } else {
                 simCtx.fillStyle = '#0f172a';
-                simCtx.strokeStyle = '#334155';
-                simCtx.lineWidth = 1.5;
+                simCtx.strokeStyle = '#38bdf8';
+                simCtx.lineWidth = 2;
                 simCtx.beginPath();
-                simCtx.roundRect(-22, -18, 44, 36, 6);
+                simCtx.roundRect(-24, -19, 48, 38, 8);
                 simCtx.fill();
                 simCtx.stroke();
             }
 
-            // Heading Arrow
-            simCtx.fillStyle = '#60a5fa';
+            // Directional Heading Indicator
+            simCtx.fillStyle = '#38bdf8';
+            simCtx.shadowColor = '#38bdf8';
+            simCtx.shadowBlur = 10;
             simCtx.beginPath();
-            simCtx.moveTo(38, 0);
-            simCtx.lineTo(30, -6);
-            simCtx.lineTo(30, 6);
+            simCtx.moveTo(42, 0);
+            simCtx.lineTo(32, -6);
+            simCtx.lineTo(32, 6);
             simCtx.closePath();
             simCtx.fill();
 
             simCtx.restore();
         }
 
+        // Oscilloscope Phosphor EEG Waveform
+        let eegTick = 0;
         function drawEEG() {
             const w = eegCanvas.width;
             const h = eegCanvas.height;
             eegCtx.clearRect(0, 0, w, h);
-            waveOffset += 0.05;
+            eegTick += 0.06;
+
+            // Oscilloscope Grid Lines
+            eegCtx.strokeStyle = 'rgba(56, 189, 248, 0.08)';
+            eegCtx.lineWidth = 1;
+            for (let x = 0; x < w; x += 24) {
+                eegCtx.beginPath(); eegCtx.moveTo(x, 0); eegCtx.lineTo(x, h); eegCtx.stroke();
+            }
+            for (let y = 0; y < h; y += 20) {
+                eegCtx.beginPath(); eegCtx.moveTo(0, y); eegCtx.lineTo(w, y); eegCtx.stroke();
+            }
 
             const isFocus = state.currentCmd !== 's';
-            const amplitude = isFocus ? 16 : 5;
-            const freq = isFocus ? 0.04 : 0.015;
+            const amplitude = isFocus ? 18 : 6;
+            const freq = isFocus ? 0.045 : 0.02;
 
-            eegCtx.strokeStyle = '#e2e8f0';
-            eegCtx.lineWidth = 1;
+            // Baseline Center Line
+            eegCtx.strokeStyle = 'rgba(56, 189, 248, 0.2)';
             eegCtx.beginPath();
             eegCtx.moveTo(0, h / 2);
             eegCtx.lineTo(w, h / 2);
             eegCtx.stroke();
 
-            eegCtx.strokeStyle = isFocus ? '#2563eb' : '#94a3b8';
-            eegCtx.lineWidth = 1.8;
+            // Glowing Phosphor Wave
+            eegCtx.strokeStyle = isFocus ? '#06b6d4' : '#38bdf8';
+            eegCtx.shadowColor = isFocus ? '#06b6d4' : '#38bdf8';
+            eegCtx.shadowBlur = 12;
+            eegCtx.lineWidth = 2.2;
             eegCtx.beginPath();
             for (let x = 0; x < w; x++) {
-                const y = h / 2 + Math.sin((x * freq) + waveOffset) * amplitude + Math.sin((x * 0.08) - waveOffset * 1.5) * (amplitude * 0.35);
+                const y = h / 2 + Math.sin((x * freq) + eegTick) * amplitude + Math.sin((x * 0.09) - eegTick * 1.8) * (amplitude * 0.4);
                 if (x === 0) eegCtx.moveTo(x, y);
                 else eegCtx.lineTo(x, y);
             }
             eegCtx.stroke();
+            eegCtx.shadowBlur = 0;
         }
 
         // EEG Band Power Simulation
@@ -1372,21 +1579,21 @@
                 delta = 10 + noise();
                 theta = 10 + noise();
                 alpha = 18 + noise();
-                beta  = 55 + noise();
+                beta  = 58 + noise();
             } else if (isTurn) {
                 delta = 12 + noise();
                 theta = 15 + noise();
                 alpha = 28 + noise();
-                beta  = 38 + noise();
+                beta  = 40 + noise();
             } else if (state.currentCmd === 'b') {
                 delta = 12 + noise();
                 theta = 25 + noise();
                 alpha = 22 + noise();
-                beta  = 35 + noise();
+                beta  = 36 + noise();
             } else {
                 delta = 15 + noise();
                 theta = 12 + noise();
-                alpha = 52 + noise();
+                alpha = 54 + noise();
                 beta  = 14 + noise();
             }
 
@@ -1411,7 +1618,7 @@
             document.getElementById('dominantBand').innerText = dominant + ' dominant';
         }
 
-        setInterval(updateBandPowers, 500);
+        setInterval(updateBandPowers, 450);
         requestAnimationFrame(loop);
     </script>
 </body>
