@@ -646,7 +646,10 @@
             <!-- Cortical Activity -->
             <div class="card">
                 <div class="card-heading">
-                    <span>EEG Cortical Signal</span>
+                    <span style="display:flex;align-items:center;gap:6px;">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                        <span>EEG Cortical Signal</span>
+                    </span>
                     <span id="stateLabel" style="color: var(--color-primary); font-family: 'JetBrains Mono', monospace; font-size: 0.76rem;">STOPPED ('s')</span>
                 </div>
                 <div class="eeg-container">
@@ -655,19 +658,31 @@
 
                 <div class="metric-grid">
                     <div class="metric-box">
-                        <div class="metric-label">Front Clearance</div>
+                        <div class="metric-label" style="display:flex;align-items:center;gap:4px;">
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                            <span>Front Clearance</span>
+                        </div>
                         <div class="metric-value" id="frontDistVal">180 cm</div>
                     </div>
                     <div class="metric-box">
-                        <div class="metric-label">Steering Servo</div>
+                        <div class="metric-label" style="display:flex;align-items:center;gap:4px;">
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/><line x1="12" y1="3" x2="12" y2="9"/><line x1="3" y1="12" x2="9" y2="12"/><line x1="15" y1="12" x2="21" y2="12"/></svg>
+                            <span>Steering Servo</span>
+                        </div>
                         <div class="metric-value" id="servoAngleVal">55°</div>
                     </div>
                     <div class="metric-box">
-                        <div class="metric-label">Motor Output</div>
+                        <div class="metric-label" style="display:flex;align-items:center;gap:4px;">
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                            <span>Motor Output</span>
+                        </div>
                         <div class="metric-value" id="pwmVal">180 PWM</div>
                     </div>
                     <div class="metric-box">
-                        <div class="metric-label">Collision Status</div>
+                        <div class="metric-label" style="display:flex;align-items:center;gap:4px;">
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                            <span>Collision Status</span>
+                        </div>
                         <div class="metric-value" id="safetyVal" style="color: var(--color-success);">CLEAR</div>
                     </div>
                 </div>
@@ -676,7 +691,10 @@
             <!-- EEG Band Power -->
             <div class="card">
                 <div class="card-heading">
-                    <span>EEG Band Power (PSD)</span>
+                    <span style="display:flex;align-items:center;gap:6px;">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                        <span>EEG Band Power (PSD)</span>
+                    </span>
                     <span id="dominantBand" style="color: var(--color-primary); font-family: 'JetBrains Mono', monospace; font-size: 0.74rem;">ALPHA dominant</span>
                 </div>
                 <div class="band-bars">
@@ -706,7 +724,10 @@
             <!-- Direction & Speed Triggers -->
             <div class="card">
                 <div class="card-heading">
-                    <span>Navigation Triggers</span>
+                    <span style="display:flex;align-items:center;gap:6px;">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
+                        <span>Navigation Triggers</span>
+                    </span>
                 </div>
 
                 <div class="nav-grid">
@@ -740,9 +761,15 @@
 
                 <!-- Speed Gear -->
                 <div class="gear-row">
-                    <button class="gear-btn" id="gear1" onclick="setGear('1', 120)">Gear 1 (120)</button>
-                    <button class="gear-btn active" id="gear2" onclick="setGear('2', 180)">Gear 2 (180)</button>
-                    <button class="gear-btn" id="gear3" onclick="setGear('3', 255)">Gear 3 (255)</button>
+                    <button class="gear-btn" id="gear1" onclick="setGear('1', 120)">
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;vertical-align:middle;margin-right:2px;"><path d="M12 2v20"/></svg>Gear 1 (120)
+                    </button>
+                    <button class="gear-btn active" id="gear2" onclick="setGear('2', 180)">
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;vertical-align:middle;margin-right:2px;"><path d="M8 2v20M16 2v20"/></svg>Gear 2 (180)
+                    </button>
+                    <button class="gear-btn" id="gear3" onclick="setGear('3', 255)">
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;vertical-align:middle;margin-right:2px;"><path d="M4 2v20M12 2v20M20 2v20"/></svg>Gear 3 (255)
+                    </button>
                 </div>
 
                 <!-- Voice Assist & Telemetry Export -->
@@ -761,7 +788,10 @@
             <!-- Console Log -->
             <div class="card" style="flex: 1;">
                 <div class="card-heading">
-                    <span>Telemetry Stream</span>
+                    <span style="display:flex;align-items:center;gap:6px;">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+                        <span>Telemetry Stream</span>
+                    </span>
                 </div>
                 <div class="log-container" id="logBox">
                     <div><span class="log-time">00:00:01</span> <span class="log-msg">System initialized.</span></div>
