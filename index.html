@@ -925,7 +925,7 @@
 
                 document.getElementById('btnConnectSerial').classList.add('connected');
                 document.getElementById('serialStatusText').innerText = 'Arduino USB Connected';
-                log("⚡ USB Arduino connected directly via Web Serial (9600 baud)!", false, true);
+                log("[SERIAL] USB Arduino connected directly via Web Serial (9600 baud)!", false, true);
             } catch (err) {
                 log(`Serial Error: ${err.message}`, true);
             }
@@ -1029,7 +1029,7 @@
             // In Waypoint mode, click sets navigation target
             if (state.mode === 'waypoint') {
                 state.waypoint = { x: mouseX, y: mouseY };
-                log(`🎯 New Waypoint set at (${Math.round(mouseX)}, ${Math.round(mouseY)})`);
+                log(`[WAYPOINT] Target set at (${Math.round(mouseX)}, ${Math.round(mouseY)})`);
             }
         });
 
@@ -1140,7 +1140,7 @@
                 if (distToTarget < 20) {
                     triggerCmd('s');
                     state.waypoint = null;
-                    log("🎯 Destination waypoint reached!", false);
+                    log("[NAVIGATION] Destination waypoint reached!", false);
                 } else {
                     const desiredAngle = Math.atan2(dy, dx);
                     let angleDiff = desiredAngle - state.angle;
