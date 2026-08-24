@@ -1084,18 +1084,24 @@
 
         function changeMap(mapName) {
             if (mapName === 'lab') {
-                state.obstacles = [{ x: 420, y: 260, w: 56, h: 56 }];
+                state.obstacles = [
+                    { x: 420, y: 260, w: 56, h: 56, type: 'console' },
+                    { x: 260, y: 140, w: 46, h: 46, type: 'pillar' }
+                ];
             } else if (mapName === 'corridor') {
                 state.obstacles = [
-                    { x: 260, y: 160, w: 45, h: 45 },
-                    { x: 480, y: 360, w: 45, h: 45 },
-                    { x: 370, y: 260, w: 45, h: 45 }
+                    { x: 240, y: 150, w: 48, h: 48, type: 'pillar' },
+                    { x: 240, y: 370, w: 48, h: 48, type: 'pillar' },
+                    { x: 480, y: 150, w: 48, h: 48, type: 'pillar' },
+                    { x: 480, y: 370, w: 48, h: 48, type: 'pillar' },
+                    { x: 360, y: 260, w: 52, h: 52, type: 'console' }
                 ];
             } else if (mapName === 'slalom') {
                 state.obstacles = [
-                    { x: 260, y: 190, w: 38, h: 38 },
-                    { x: 400, y: 330, w: 38, h: 38 },
-                    { x: 540, y: 190, w: 38, h: 38 }
+                    { x: 240, y: 190, w: 40, h: 40, type: 'cone' },
+                    { x: 380, y: 330, w: 40, h: 40, type: 'cone' },
+                    { x: 520, y: 190, w: 40, h: 40, type: 'cone' },
+                    { x: 660, y: 330, w: 40, h: 40, type: 'cone' }
                 ];
             }
             log(`[ARENA] Environment loaded: ${mapName}`);
@@ -1404,36 +1410,114 @@
                 simCtx.restore();
             }
 
-            // Draw Tactical Obstacles
+            // Draw Tactical Obstacles (High-Tech Laboratory & Safety Objects)
             for (let obs of state.obstacles) {
                 simCtx.save();
-                const obsSize = obs.w || 56;
+                const obsSize = obs.w || 54;
+                const halfSize = obsSize / 2;
 
-                // Drop shadow
-                simCtx.shadowColor = 'rgba(0, 0, 0, 0.8)';
-                simCtx.shadowBlur = 16;
-                simCtx.shadowOffsetX = 4;
+                // Soft Ambient Drop Shadow
+                simCtx.shadowColor = 'rgba(0, 0, 0, 0.75)';
+                simCtx.shadowBlur = 18;
+                simCtx.shadowOffsetX = 3;
                 simCtx.shadowOffsetY = 6;
 
-                if (obstacleImgReady) {
-                    simCtx.drawImage(obstacleImg, obs.x - obsSize / 2, obs.y - obsSize / 2, obsSize, obsSize);
-                } else {
-                    simCtx.fillStyle = '#1e293b';
-                    simCtx.strokeStyle = '#ef4444';
-                    simCtx.lineWidth = 2;
+                if (obs.type === 'column' || obs.type === 'pillar') {
+                    // High-Tech Cylindrical Medical Column / Bollard
                     simCtx.beginPath();
-                    simCtx.roundRect(obs.x - obsSize / 2, obs.y - obsSize / 2, obsSize, obsSize, 8);
+                    simCtx.arc(obs.x, obs.y, halfSize, 0, Math.PI * 2);
+                    const grad = simCtx.createRadialGradient(obs.x - halfSize * 0.3, obs.y - halfSize * 0.3, 2, obs.x, obs.y, halfSize);
+                    grad.addColorStop(0, '#334155');
+                    grad.addColorStop(0.6, '#1e293b');
+                    grad.addColorStop(1, '#0f172a');
+                    simCtx.fillStyle = grad;
+                    simCtx.fill();
+
+                    // Outer Metallic Bevel Rim
+                    simCtx.strokeStyle = 'rgba(56, 189, 248, 0.4)';
+                    simCtx.lineWidth = 2.5;
+                    simCtx.stroke();
+
+                    // Glowing LED Safety Ring
+                    simCtx.shadowColor = '#38bdf8';
+                    simCtx.shadowBlur = 10;
+                    simCtx.strokeStyle = '#38bdf8';
+                    simCtx.lineWidth = 1.5;
+                    simCtx.beginPath();
+                    simCtx.arc(obs.x, obs.y, halfSize * 0.65, 0, Math.PI * 2);
+                    simCtx.stroke();
+
+                    // Center Core Cap
+                    simCtx.fillStyle = '#0f172a';
+                    simCtx.beginPath();
+                    simCtx.arc(obs.x, obs.y, halfSize * 0.35, 0, Math.PI * 2);
+                    simCtx.fill();
+                } else if (obs.type === 'cone') {
+                    // Precision Safety Beacon Cone
+                    simCtx.beginPath();
+                    simCtx.arc(obs.x, obs.y, halfSize, 0, Math.PI * 2);
+                    simCtx.fillStyle = '#ea580c';
+                    simCtx.fill();
+                    simCtx.strokeStyle = '#f97316';
+                    simCtx.lineWidth = 2;
+                    simCtx.stroke();
+
+                    // White Reflective Band
+                    simCtx.beginPath();
+                    simCtx.arc(obs.x, obs.y, halfSize * 0.62, 0, Math.PI * 2);
+                    simCtx.fillStyle = '#f8fafc';
+                    simCtx.fill();
+
+                    // Orange Tip Cap
+                    simCtx.beginPath();
+                    simCtx.arc(obs.x, obs.y, halfSize * 0.3, 0, Math.PI * 2);
+                    simCtx.fillStyle = '#c2410c';
+                    simCtx.fill();
+                } else {
+                    // High-Tech Laboratory Console Module
+                    simCtx.beginPath();
+                    simCtx.roundRect(obs.x - halfSize, obs.y - halfSize, obsSize, obsSize, 10);
+                    const grad = simCtx.createLinearGradient(obs.x - halfSize, obs.y - halfSize, obs.x + halfSize, obs.y + halfSize);
+                    grad.addColorStop(0, '#1e293b');
+                    grad.addColorStop(0.5, '#0f172a');
+                    grad.addColorStop(1, '#090d16');
+                    simCtx.fillStyle = grad;
+                    simCtx.fill();
+
+                    // Carbon Trim & Metallic Border
+                    simCtx.strokeStyle = 'rgba(56, 189, 248, 0.45)';
+                    simCtx.lineWidth = 2;
+                    simCtx.stroke();
+
+                    // Reinforced Corner Brackets
+                    simCtx.strokeStyle = '#38bdf8';
+                    simCtx.lineWidth = 2.5;
+                    const cLen = 8;
+                    // Top-left
+                    simCtx.beginPath(); simCtx.moveTo(obs.x - halfSize, obs.y - halfSize + cLen); simCtx.lineTo(obs.x - halfSize, obs.y - halfSize); simCtx.lineTo(obs.x - halfSize + cLen, obs.y - halfSize); simCtx.stroke();
+                    // Top-right
+                    simCtx.beginPath(); simCtx.moveTo(obs.x + halfSize - cLen, obs.y - halfSize); simCtx.lineTo(obs.x + halfSize, obs.y - halfSize); simCtx.lineTo(obs.x + halfSize, obs.y - halfSize + cLen); simCtx.stroke();
+                    // Bottom-left
+                    simCtx.beginPath(); simCtx.moveTo(obs.x - halfSize, obs.y + halfSize - cLen); simCtx.lineTo(obs.x - halfSize, obs.y + halfSize); simCtx.lineTo(obs.x - halfSize + cLen, obs.y + halfSize); simCtx.stroke();
+                    // Bottom-right
+                    simCtx.beginPath(); simCtx.moveTo(obs.x + halfSize - cLen, obs.y + halfSize); simCtx.lineTo(obs.x + halfSize, obs.y + halfSize); simCtx.lineTo(obs.x + halfSize, obs.y + halfSize - cLen); simCtx.stroke();
+
+                    // Center Status Display Screen
+                    simCtx.fillStyle = 'rgba(6, 182, 212, 0.15)';
+                    simCtx.strokeStyle = 'rgba(6, 182, 212, 0.6)';
+                    simCtx.lineWidth = 1;
+                    simCtx.beginPath();
+                    simCtx.roundRect(obs.x - halfSize * 0.6, obs.y - halfSize * 0.45, obsSize * 0.6, obsSize * 0.45, 4);
                     simCtx.fill();
                     simCtx.stroke();
 
-                    // Hazard X
-                    simCtx.strokeStyle = 'rgba(239, 68, 68, 0.4)';
+                    // Warning LED Pulse
+                    simCtx.fillStyle = '#ef4444';
+                    simCtx.shadowColor = '#ef4444';
+                    simCtx.shadowBlur = 8;
                     simCtx.beginPath();
-                    simCtx.moveTo(obs.x - obsSize / 4, obs.y - obsSize / 4);
-                    simCtx.lineTo(obs.x + obsSize / 4, obs.y + obsSize / 4);
-                    simCtx.moveTo(obs.x + obsSize / 4, obs.y - obsSize / 4);
-                    simCtx.lineTo(obs.x - obsSize / 4, obs.y + obsSize / 4);
-                    simCtx.stroke();
+                    simCtx.arc(obs.x + halfSize * 0.45, obs.y + halfSize * 0.45, 3, 0, Math.PI * 2);
+                    simCtx.fill();
                 }
                 simCtx.restore();
             }
@@ -1443,19 +1527,19 @@
             simCtx.translate(state.x, state.y);
             simCtx.rotate(state.angle);
 
-            const radarLen = Math.min(190, state.frontDist * 1.5 + 24);
+            const radarLen = Math.min(200, state.frontDist * 1.5 + 24);
             const isHazard = state.frontDist < 30;
             const isWarn = state.frontDist >= 30 && state.frontDist < 60;
 
             const grad = simCtx.createRadialGradient(0, 0, 8, 0, 0, radarLen);
             if (isHazard) {
-                grad.addColorStop(0, 'rgba(239, 68, 68, 0.4)');
+                grad.addColorStop(0, 'rgba(239, 68, 68, 0.45)');
                 grad.addColorStop(1, 'rgba(239, 68, 68, 0)');
             } else if (isWarn) {
-                grad.addColorStop(0, 'rgba(245, 158, 11, 0.3)');
+                grad.addColorStop(0, 'rgba(245, 158, 11, 0.35)');
                 grad.addColorStop(1, 'rgba(245, 158, 11, 0)');
             } else {
-                grad.addColorStop(0, 'rgba(56, 189, 248, 0.25)');
+                grad.addColorStop(0, 'rgba(56, 189, 248, 0.28)');
                 grad.addColorStop(1, 'rgba(56, 189, 248, 0)');
             }
 
@@ -1466,57 +1550,147 @@
             simCtx.closePath();
             simCtx.fill();
 
-            // Distance arc waves
+            // Range Wave Arcs
             simCtx.strokeStyle = isHazard ? '#ef4444' : (isWarn ? '#f59e0b' : '#38bdf8');
             simCtx.setLineDash([4, 4]);
-            simCtx.lineWidth = 1.6;
+            simCtx.lineWidth = 1.8;
             simCtx.beginPath();
             simCtx.arc(0, 0, radarLen, -0.38, 0.38);
             simCtx.stroke();
 
-            // Dual Headlight volumetric beam
-            simCtx.fillStyle = 'rgba(255, 255, 255, 0.12)';
-            simCtx.beginPath();
-            simCtx.moveTo(18, -8);
-            simCtx.lineTo(60, -22);
-            simCtx.lineTo(60, -4);
-            simCtx.closePath();
-            simCtx.fill();
-
-            simCtx.beginPath();
-            simCtx.moveTo(18, 8);
-            simCtx.lineTo(60, 4);
-            simCtx.lineTo(60, 22);
-            simCtx.closePath();
-            simCtx.fill();
-
-            // Wheelchair Sprite
+            // Dual Volumetric Headlights
             simCtx.setLineDash([]);
-            if (wheelchairImgReady) {
-                simCtx.rotate(-Math.PI / 2);
-                const spriteSize = 74;
-                simCtx.shadowColor = 'rgba(0, 0, 0, 0.7)';
-                simCtx.shadowBlur = 14;
-                simCtx.drawImage(wheelchairImg, -spriteSize / 2, -spriteSize / 2, spriteSize, spriteSize);
-                simCtx.rotate(Math.PI / 2);
-            } else {
-                simCtx.fillStyle = '#0f172a';
-                simCtx.strokeStyle = '#38bdf8';
-                simCtx.lineWidth = 2;
-                simCtx.beginPath();
-                simCtx.roundRect(-24, -19, 48, 38, 8);
-                simCtx.fill();
-                simCtx.stroke();
-            }
+            const lightGrad = simCtx.createLinearGradient(20, 0, 90, 0);
+            lightGrad.addColorStop(0, 'rgba(255, 255, 255, 0.35)');
+            lightGrad.addColorStop(1, 'rgba(56, 189, 248, 0)');
+            simCtx.fillStyle = lightGrad;
 
-            // Directional Heading Indicator
+            // Left Beam
+            simCtx.beginPath();
+            simCtx.moveTo(22, -10);
+            simCtx.lineTo(95, -28);
+            simCtx.lineTo(95, -4);
+            simCtx.closePath();
+            simCtx.fill();
+
+            // Right Beam
+            simCtx.beginPath();
+            simCtx.moveTo(22, 10);
+            simCtx.lineTo(95, 4);
+            simCtx.lineTo(95, 28);
+            simCtx.closePath();
+            simCtx.fill();
+
+            // ==========================================
+            // High-Definition Procedural Robotic Wheelchair
+            // ==========================================
+            // Shadow
+            simCtx.save();
+            simCtx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+            simCtx.shadowBlur = 18;
+            simCtx.shadowOffsetX = 2;
+            simCtx.shadowOffsetY = 4;
+
+            // Main Base Chassis
+            simCtx.fillStyle = '#0f172a';
+            simCtx.beginPath();
+            simCtx.roundRect(-24, -20, 48, 40, 8);
+            simCtx.fill();
+            simCtx.restore();
+
+            // Carbon-Composite Top Plate
+            const bodyGrad = simCtx.createLinearGradient(-22, -18, 22, 18);
+            bodyGrad.addColorStop(0, '#1e293b');
+            bodyGrad.addColorStop(0.5, '#0f172a');
+            bodyGrad.addColorStop(1, '#020617');
+            simCtx.fillStyle = bodyGrad;
+            simCtx.strokeStyle = 'rgba(56, 189, 248, 0.6)';
+            simCtx.lineWidth = 1.8;
+            simCtx.beginPath();
+            simCtx.roundRect(-22, -18, 44, 36, 6);
+            simCtx.fill();
+            simCtx.stroke();
+
+            // Rear Heavy-Duty Rubber Drive Wheels (Left & Right)
+            simCtx.fillStyle = '#020617';
+            simCtx.strokeStyle = '#475569';
+            simCtx.lineWidth = 1.5;
+            // Left Wheel
+            simCtx.beginPath(); simCtx.roundRect(-20, -26, 26, 7, 3); simCtx.fill(); simCtx.stroke();
+            // Right Wheel
+            simCtx.beginPath(); simCtx.roundRect(-20, 19, 26, 7, 3); simCtx.fill(); simCtx.stroke();
+
+            // Front Active Steering Caster Wheels (Pivot with Servo Angle)
+            const steerRad = ((state.servoAngle - 55) / 55) * 0.65; // Dynamic steer angle
+
+            // Front Left Caster
+            simCtx.save();
+            simCtx.translate(16, -16);
+            simCtx.rotate(steerRad);
+            simCtx.fillStyle = '#334155';
+            simCtx.strokeStyle = '#38bdf8';
+            simCtx.lineWidth = 1.2;
+            simCtx.beginPath(); simCtx.roundRect(-6, -3.5, 12, 7, 2); simCtx.fill(); simCtx.stroke();
+            simCtx.restore();
+
+            // Front Right Caster
+            simCtx.save();
+            simCtx.translate(16, 16);
+            simCtx.rotate(steerRad);
+            simCtx.fillStyle = '#334155';
+            simCtx.strokeStyle = '#38bdf8';
+            simCtx.lineWidth = 1.2;
+            simCtx.beginPath(); simCtx.roundRect(-6, -3.5, 12, 7, 2); simCtx.fill(); simCtx.stroke();
+            simCtx.restore();
+
+            // Ergonomic Seat Cushion
+            simCtx.fillStyle = '#1e293b';
+            simCtx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+            simCtx.lineWidth = 1;
+            simCtx.beginPath();
+            simCtx.roundRect(-12, -13, 24, 26, 4);
+            simCtx.fill();
+            simCtx.stroke();
+
+            // Backrest & Headrest
+            simCtx.fillStyle = '#0f172a';
+            simCtx.beginPath(); simCtx.roundRect(-20, -11, 7, 22, 3); simCtx.fill();
+            simCtx.beginPath(); simCtx.roundRect(-23, -6, 4, 12, 2); simCtx.fill();
+
+            // Armrests with Metallic Finish
+            simCtx.fillStyle = '#334155';
+            simCtx.beginPath(); simCtx.roundRect(-10, -16, 20, 3, 1.5); simCtx.fill();
+            simCtx.beginPath(); simCtx.roundRect(-10, 13, 20, 3, 1.5); simCtx.fill();
+
+            // Front Ultrasonic Dual Sensors
+            simCtx.fillStyle = '#06b6d4';
+            simCtx.shadowColor = '#06b6d4';
+            simCtx.shadowBlur = 6;
+            simCtx.beginPath(); simCtx.arc(22, -8, 2.5, 0, Math.PI * 2); simCtx.fill();
+            simCtx.beginPath(); simCtx.arc(22, 8, 2.5, 0, Math.PI * 2); simCtx.fill();
+
+            // Rear LED Tail / Brake Lights
+            const isBraking = state.currentCmd === 's' || state.currentCmd === 'b';
+            simCtx.fillStyle = isBraking ? '#ef4444' : '#7f1d1d';
+            simCtx.shadowColor = '#ef4444';
+            simCtx.shadowBlur = isBraking ? 14 : 3;
+            simCtx.beginPath(); simCtx.roundRect(-24, -14, 2.5, 5, 1); simCtx.fill();
+            simCtx.beginPath(); simCtx.roundRect(-24, 9, 2.5, 5, 1); simCtx.fill();
+
+            // Central Glowing BCI Neural Link Core
             simCtx.fillStyle = '#38bdf8';
             simCtx.shadowColor = '#38bdf8';
             simCtx.shadowBlur = 10;
             simCtx.beginPath();
-            simCtx.moveTo(42, 0);
-            simCtx.lineTo(32, -6);
-            simCtx.lineTo(32, 6);
+            simCtx.arc(0, 0, 4, 0, Math.PI * 2);
+            simCtx.fill();
+
+            // Directional Heading Indicator
+            simCtx.fillStyle = '#38bdf8';
+            simCtx.beginPath();
+            simCtx.moveTo(34, 0);
+            simCtx.lineTo(26, -5);
+            simCtx.lineTo(26, 5);
             simCtx.closePath();
             simCtx.fill();
 
