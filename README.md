@@ -1,11 +1,5 @@
 # NeuroWheel: Brain Signal Controlled Wheelchair
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Python: 3.8+](https://img.shields.io/badge/Python-3.8%2B-blue.svg)](https://python.org)
-[![Arduino C++](https://img.shields.io/badge/Platform-Arduino%20C%2B%2B-00979D.svg)](https://www.arduino.cc)
-[![DSP: SciPy](https://img.shields.io/badge/DSP-SciPy%20%7C%20NumPy-013243.svg)](https://scipy.org)
-[![ML: scikit-learn](https://img.shields.io/badge/ML-scikit--learn-orange.svg)](https://scikit-learn.org)
-
 NeuroWheel is an open-source closed-loop Brain-Computer Interface (BCI) wheelchair navigation system. It acquires real-time electroencephalogram (EEG) signals, applies digital signal processing (DSP) filters and machine learning classifiers to decode user intent, and translates mental states into motor and steering commands on an Arduino-driven motorized wheelchair with ultrasonic collision avoidance.
 
 The repository includes embedded C++ firmware, Python signal processing and ML scripts, an emergency watchdog supervisor, and an interactive browser-based simulator with direct Web Serial API hardware control.
