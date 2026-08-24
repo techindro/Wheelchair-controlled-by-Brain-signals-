@@ -12,44 +12,43 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
+            --bg-page: #f8fafc;
+            --bg-card: #ffffff;
+            --bg-card-solid: #ffffff;
+            --bg-subtle: #f1f5f9;
+            --border-light: #e2e8f0;
+            --border-glow: #cbd5e1;
+            
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --text-subtle: #94a3b8;
+
+            --color-primary: #0284c7;
+            --color-primary-glow: rgba(2, 132, 199, 0.15);
+            --color-accent: #0284c7;
+            --color-success: #16a34a;
+            --color-success-glow: rgba(22, 163, 74, 0.2);
+            --color-danger: #dc2626;
+            --color-danger-glow: rgba(220, 38, 38, 0.2);
+            --color-warning: #d97706;
+
+            --shadow-card: 0 4px 20px -2px rgba(0, 0, 0, 0.06), 0 2px 6px -1px rgba(0, 0, 0, 0.04);
+            --shadow-glow: 0 0 15px rgba(2, 132, 199, 0.15);
+        }
+
+        body.theme-dark {
             --bg-page: #070b13;
-            --bg-card: rgba(13, 21, 39, 0.75);
+            --bg-card: rgba(13, 21, 39, 0.85);
             --bg-card-solid: #0d1527;
             --bg-subtle: rgba(22, 33, 58, 0.6);
             --border-light: rgba(56, 189, 248, 0.14);
             --border-glow: rgba(56, 189, 248, 0.35);
-            
             --text-main: #f1f5f9;
             --text-muted: #94a3b8;
             --text-subtle: #64748b;
-
             --color-primary: #38bdf8;
             --color-primary-glow: rgba(56, 189, 248, 0.25);
-            --color-accent: #06b6d4;
-            --color-success: #10b981;
-            --color-success-glow: rgba(16, 185, 129, 0.25);
-            --color-danger: #ef4444;
-            --color-danger-glow: rgba(239, 68, 68, 0.3);
-            --color-warning: #f59e0b;
-
             --shadow-card: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-            --shadow-glow: 0 0 20px rgba(56, 189, 248, 0.2);
-        }
-
-        body.theme-light {
-            --bg-page: #f0f4f8;
-            --bg-card: rgba(255, 255, 255, 0.85);
-            --bg-card-solid: #ffffff;
-            --bg-subtle: #e2e8f0;
-            --border-light: #cbd5e1;
-            --border-glow: #94a3b8;
-            --text-main: #0f172a;
-            --text-muted: #475569;
-            --text-subtle: #94a3b8;
-            --color-primary: #0284c7;
-            --color-primary-glow: rgba(2, 132, 199, 0.15);
-            --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.08);
-            --shadow-glow: 0 0 15px rgba(2, 132, 199, 0.15);
         }
 
         * {
@@ -63,9 +62,6 @@
 
         body {
             background-color: var(--bg-page);
-            background-image: 
-                radial-gradient(circle at 15% 15%, rgba(56, 189, 248, 0.05) 0%, transparent 45%),
-                radial-gradient(circle at 85% 85%, rgba(6, 182, 212, 0.05) 0%, transparent 45%);
             color: var(--text-main);
             min-height: 100vh;
             display: flex;
@@ -282,11 +278,16 @@
         .arena-wrapper {
             flex: 1;
             position: relative;
-            background: #050811;
+            background: #ffffff;
             border: 1px solid var(--border-light);
             border-radius: 12px;
             overflow: hidden;
             min-height: 520px;
+            box-shadow: inset 0 0 25px rgba(0, 0, 0, 0.02);
+        }
+
+        body.theme-dark .arena-wrapper {
+            background: #050811;
             box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.8);
         }
 
@@ -308,7 +309,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: rgba(13, 21, 39, 0.85);
+            background: rgba(255, 255, 255, 0.92);
             backdrop-filter: blur(12px);
             border: 1px solid var(--border-light);
             padding: 8px 14px;
@@ -316,6 +317,11 @@
             font-size: 0.74rem;
             color: var(--text-muted);
             pointer-events: auto;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        body.theme-dark .arena-toolbar {
+            background: rgba(13, 21, 39, 0.85);
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
         }
 
@@ -376,12 +382,17 @@
         /* EEG Waveform Container */
         .eeg-container {
             height: 68px;
-            background: #04060d;
-            border: 1px solid rgba(56, 189, 248, 0.2);
+            background: #f8fafc;
+            border: 1px solid var(--border-light);
             border-radius: 10px;
             position: relative;
             overflow: hidden;
             margin-bottom: 10px;
+        }
+
+        body.theme-dark .eeg-container {
+            background: #04060d;
+            border-color: rgba(56, 189, 248, 0.2);
             box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.8);
         }
 
@@ -410,6 +421,11 @@
         }
 
         .metric-box:hover {
+            border-color: rgba(2, 132, 199, 0.3);
+            background: #e2e8f0;
+        }
+
+        body.theme-dark .metric-box:hover {
             border-color: rgba(56, 189, 248, 0.3);
             background: rgba(22, 33, 58, 0.8);
         }
@@ -461,11 +477,15 @@
         .band-track {
             flex: 1;
             height: 10px;
-            background: rgba(0, 0, 0, 0.4);
+            background: #f1f5f9;
             border: 1px solid var(--border-light);
             border-radius: 5px;
             overflow: hidden;
             position: relative;
+        }
+
+        body.theme-dark .band-track {
+            background: rgba(0, 0, 0, 0.4);
         }
 
         .band-fill {
@@ -1337,8 +1357,10 @@
             const h = simCanvas.height;
             simCtx.clearRect(0, 0, w, h);
 
-            // High-Tech Cyber Grid
-            simCtx.strokeStyle = 'rgba(56, 189, 248, 0.05)';
+            const isDark = document.body.classList.contains('theme-dark');
+
+            // High-Tech Clean Blueprint Grid
+            simCtx.strokeStyle = isDark ? 'rgba(56, 189, 248, 0.05)' : 'rgba(2, 132, 199, 0.06)';
             simCtx.lineWidth = 1;
             for (let x = 0; x < w; x += 36) {
                 simCtx.beginPath(); simCtx.moveTo(x, 0); simCtx.lineTo(x, h); simCtx.stroke();
@@ -1348,7 +1370,7 @@
             }
 
             // Center Blueprint Axes
-            simCtx.strokeStyle = 'rgba(56, 189, 248, 0.12)';
+            simCtx.strokeStyle = isDark ? 'rgba(56, 189, 248, 0.12)' : 'rgba(2, 132, 199, 0.15)';
             simCtx.setLineDash([6, 6]);
             simCtx.beginPath(); simCtx.moveTo(w / 2, 0); simCtx.lineTo(w / 2, h); simCtx.stroke();
             simCtx.beginPath(); simCtx.moveTo(0, h / 2); simCtx.lineTo(w, h / 2); simCtx.stroke();
@@ -1705,8 +1727,10 @@
             eegCtx.clearRect(0, 0, w, h);
             eegTick += 0.06;
 
+            const isDark = document.body.classList.contains('theme-dark');
+
             // Oscilloscope Grid Lines
-            eegCtx.strokeStyle = 'rgba(56, 189, 248, 0.08)';
+            eegCtx.strokeStyle = isDark ? 'rgba(56, 189, 248, 0.08)' : 'rgba(2, 132, 199, 0.07)';
             eegCtx.lineWidth = 1;
             for (let x = 0; x < w; x += 24) {
                 eegCtx.beginPath(); eegCtx.moveTo(x, 0); eegCtx.lineTo(x, h); eegCtx.stroke();
@@ -1720,16 +1744,18 @@
             const freq = isFocus ? 0.045 : 0.02;
 
             // Baseline Center Line
-            eegCtx.strokeStyle = 'rgba(56, 189, 248, 0.2)';
+            eegCtx.strokeStyle = isDark ? 'rgba(56, 189, 248, 0.2)' : 'rgba(2, 132, 199, 0.2)';
             eegCtx.beginPath();
             eegCtx.moveTo(0, h / 2);
             eegCtx.lineTo(w, h / 2);
             eegCtx.stroke();
 
-            // Glowing Phosphor Wave
-            eegCtx.strokeStyle = isFocus ? '#06b6d4' : '#38bdf8';
-            eegCtx.shadowColor = isFocus ? '#06b6d4' : '#38bdf8';
-            eegCtx.shadowBlur = 12;
+            // Glowing Waveform
+            eegCtx.strokeStyle = isDark ? (isFocus ? '#06b6d4' : '#38bdf8') : (isFocus ? '#0284c7' : '#64748b');
+            if (isDark) {
+                eegCtx.shadowColor = isFocus ? '#06b6d4' : '#38bdf8';
+                eegCtx.shadowBlur = 12;
+            }
             eegCtx.lineWidth = 2.2;
             eegCtx.beginPath();
             for (let x = 0; x < w; x++) {
