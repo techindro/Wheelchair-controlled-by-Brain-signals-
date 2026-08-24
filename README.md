@@ -249,7 +249,6 @@ If you use this system, codebase, or simulator in your research or project, plea
 ## Author
 
 **Shubham Patel**  
-Department of Computer Science & Engineering  
 GitHub: [@techindro](https://github.com/techindro)
 
 ---
