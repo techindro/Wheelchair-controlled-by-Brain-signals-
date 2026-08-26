@@ -7,7 +7,6 @@ The repository includes embedded C++ firmware, Python signal processing and ML s
 ![System Architecture](images/bci.png)
 
 ---
-
 ## System Overview
 
 ```
